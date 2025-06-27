@@ -1,13 +1,18 @@
 import type React from "react"
 import { useEffect } from "react"
-import LoginPage from "./features/auth/LoginPage"
-import { supabase } from "./features/auth/supabaseClient"
+import { supabase } from "./app/supabaseClient.ts"
 import { setSession } from "./features/auth/authSlice"
 import { useAppDispatch } from "./app/hooks.ts"
 import { Route, Routes } from "react-router-dom"
-import SignupPage from "./features/auth/SignUpPage.tsx"
 import HomePage from "./pages/HomePage.tsx"
-import ProtectedRoute from "./features/auth/ProtectedRoute.tsx"
+import LoginPage from "./features/auth/LoginPage.tsx"
+import SignupPage from "./features/auth/SignUpPage.tsx"
+import KeyboardEditor from "./pages/KeyboardEditor.tsx"
+import Layout from "./components/Layout.tsx"
+import { ReactFlowProvider } from "@xyflow/react"
+import Keyboards from "./pages/Keyboards.tsx"
+import AuthProtectedRoute from "./features/auth/AuthProtectedRoute.tsx"
+import { SessionProvider } from "./context/SessionContext.tsx"
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch()
@@ -27,25 +32,26 @@ export const App: React.FC = () => {
   }, [dispatch])
 
   return (
-    <Routes>
-      <Route
-        path="/auth/login"
-        element={
-          <ProtectedRoute requiresAuth={false}>
-            <LoginPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/auth/signup"
-        element={
-          <ProtectedRoute requiresAuth={false}>
-            <SignupPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/" element={<HomePage />} />
-    </Routes>
+    <SessionProvider>
+      <Routes>
+        <Route path="/auth/login" element={<LoginPage />} />
+        <Route path="/auth/signup" element={<SignupPage />} />
+        <Route element={<AuthProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/keyboards" element={<Keyboards />} />
+            <Route
+              path="/keyboards/:keyboardId"
+              element={
+                <ReactFlowProvider>
+                  <KeyboardEditor />
+                </ReactFlowProvider>
+              }
+            />
+            <Route path="/" element={<HomePage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </SessionProvider>
   )
 }
 

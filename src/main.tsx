@@ -5,6 +5,8 @@ import { App } from "./App"
 import { store } from "./app/store"
 import "./index.css"
 import { BrowserRouter } from "react-router-dom"
+import { ApolloProvider } from "@apollo/client"
+import { apolloClient } from "./app/apolloClient.ts"
 
 const container = document.getElementById("root")
 
@@ -15,7 +17,9 @@ if (container) {
     <StrictMode>
       <BrowserRouter>
         <Provider store={store}>
-          <App />
+          <ApolloProvider client={apolloClient}>
+            <App />
+          </ApolloProvider>
         </Provider>
       </BrowserRouter>
     </StrictMode>,
