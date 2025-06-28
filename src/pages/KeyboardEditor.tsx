@@ -23,6 +23,7 @@ import { supabase } from "../app/supabaseClient"
 import type { PostgrestError } from "@supabase/supabase-js"
 import { getHelperLines } from "../utils/utils.ts"
 import HelperLines from "../components/HelperLines.tsx"
+import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardLayout.ts"
 import { Paper } from "@mui/material"
@@ -66,9 +67,11 @@ const KeyboardEditor: React.FC<Props> = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<PostgrestError | null>(null)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [menu, setMenu] = useState(null)
   const reactFlowInstance = useReactFlow()
   const { screenToFlowPosition } = useReactFlow()
   const theme = useTheme()
+  const ref = useRef(null)
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<
     number | undefined
@@ -236,8 +239,7 @@ const KeyboardEditor: React.FC<Props> = () => {
 
   const Sidebar = () => {
     return (
-      <Paper sx={{ width: 200, padding: 2 }}>
-        <h4>Add Keys</h4>
+      <Paper sx={{ padding: 2 }}>
         {KEY_SIZES.map(u => (
           <div
             key={u}
@@ -269,6 +271,29 @@ const KeyboardEditor: React.FC<Props> = () => {
     )
   }
 
+  const onNodeContextMenu = useCallback(
+    (event, node) => {
+      // Prevent native context menu from showing
+      event.preventDefault()
+
+      // Calculate position of the context menu. We want to make sure it
+      // doesn't get positioned off-screen.
+      const pane = ref.current.getBoundingClientRect()
+      setMenu({
+        id: node.id,
+        top: event.clientY < pane.height - 200 && event.clientY,
+        left: event.clientX < pane.width - 200 && event.clientX,
+        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
+        bottom:
+          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+      })
+    },
+    [setMenu],
+  )
+
+  // Close the context menu if it's open whenever the window is clicked.
+  const onPaneClick = useCallback(() => setMenu(null), [setMenu])
+
   if (loading) return <div>Loading keyboard layout...</div>
   if (error) return <div>Error loading keyboard layout: {error.message}</div>
 
@@ -289,6 +314,7 @@ const KeyboardEditor: React.FC<Props> = () => {
         onDragOver={onDragOver}
       >
         <ReactFlow
+          ref={ref}
           nodes={nodes}
           edges={edges}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
@@ -296,19 +322,22 @@ const KeyboardEditor: React.FC<Props> = () => {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onMoveEnd={scheduleSave}
+          onNodeContextMenu={onNodeContextMenu}
+          onPaneClick={onPaneClick}
           fitView
           proOptions={{
             hideAttribution: true,
           }}
           nodeTypes={nodeTypes}
         >
-          <MiniMap />
+          <MiniMap pannable={true} />
           <Controls />
           <Background gap={16} />
           <HelperLines
             horizontal={helperLineHorizontal}
             vertical={helperLineVertical}
           />
+          {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
         </ReactFlow>
       </div>
     </div>
