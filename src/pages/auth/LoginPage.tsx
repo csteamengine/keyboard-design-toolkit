@@ -11,10 +11,8 @@ import Typography from "@mui/material/Typography"
 import Stack from "@mui/material/Stack"
 import { styled } from "@mui/material/styles"
 import ForgotPassword from "./ForgotPassword.tsx"
-import { useAppDispatch } from "../../app/hooks.ts"
 import { useState } from "react"
 import { supabase } from "../../app/supabaseClient.ts"
-import { setSession } from "./authSlice.ts"
 import GoogleIcon from "@mui/icons-material/Google"
 import GitHubIcon from "@mui/icons-material/GitHub"
 import { Link, useNavigate } from "react-router-dom"
@@ -51,7 +49,6 @@ export default function LoginPage() {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("")
   const [open, setOpen] = React.useState(false)
 
-  const dispatch = useAppDispatch()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -62,7 +59,7 @@ export default function LoginPage() {
   }
 
   const handleEmailLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -70,7 +67,6 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      dispatch(setSession(data.session))
       void navigate("/", { replace: true }) // Redirect to home on successful login
     }
   }

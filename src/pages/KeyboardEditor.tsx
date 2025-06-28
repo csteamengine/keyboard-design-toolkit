@@ -242,7 +242,7 @@ const KeyboardEditor: React.FC = () => {
 
   const Sidebar = () => {
     return (
-      <Paper sx={{ padding: 2 }}>
+      <Paper sx={{ padding: 2, ml: 1 }}>
         {KEY_SIZES.map(u => (
           <div
             key={u}

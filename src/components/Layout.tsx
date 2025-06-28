@@ -22,10 +22,8 @@ import ListItemText from "@mui/material/ListItemText"
 import AccountCircle from "@mui/icons-material/AccountCircle"
 import { ListItemIcon, Menu, MenuItem } from "@mui/material"
 import { Link, Outlet } from "react-router-dom"
-import { useAppDispatch, useAppSelector } from "../app/hooks.ts"
-import type { RootState } from "../app/store.ts"
 import { supabase } from "../app/supabaseClient.ts"
-import { signOut } from "../pages/auth/authSlice.ts"
+import { useLogout, useSession } from "../context/SessionContext.tsx"
 
 const drawerWidth = 240
 
@@ -97,7 +95,7 @@ const AppBar = styled(MuiAppBar, {
       props: ({ open }) => open,
       style: {
         marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
+        width: `calc(100% - ${String(drawerWidth)}px)`,
         transition: theme.transitions.create(["width", "margin"], {
           easing: theme.transitions.easing.sharp,
           duration: theme.transitions.duration.enteringScreen,
@@ -134,8 +132,8 @@ const Drawer = styled(MuiDrawer, {
 
 export default function PersistentDrawerLeft() {
   const theme = useTheme()
-  const dispatch = useAppDispatch()
-  const session = useAppSelector((state: RootState) => state.auth.session)
+  const logout = useLogout()
+  const { user } = useSession()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const [open, setOpen] = React.useState(false)
 
@@ -203,8 +201,8 @@ export default function PersistentDrawerLeft() {
       ))}
     </List>
   )
-  const userEmail = session?.user.email
-  const username = session?.user.user_metadata.full_name ?? userEmail
+  const userEmail = user?.email
+  const username = String(user?.user_metadata.full_name ?? userEmail)
 
   const handleDrawerOpen = () => {
     setOpen(true)
@@ -224,7 +222,7 @@ export default function PersistentDrawerLeft() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    dispatch(signOut())
+    void logout()
     handleMenuClose()
   }
 

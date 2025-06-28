@@ -10,10 +10,10 @@ import type { RootState } from "../app/store.ts"
 import { supabase } from "../app/supabaseClient.ts"
 import { useNavigate } from "react-router-dom"
 import type { KeyboardLayout } from "../types/KeyboardLayout.ts"
+import { useSession } from "../context/SessionContext.tsx"
 
 const Keyboards: React.FC = () => {
-  const session = useAppSelector((state: RootState) => state.auth.session)
-  const user = useAppSelector((state: RootState) => state.auth.user)
+  const { user, session } = useSession()
   const [keyboards, setKeyboards] = useState<KeyboardLayout[]>([])
   const navigate = useNavigate()
 

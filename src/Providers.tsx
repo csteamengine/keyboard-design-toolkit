@@ -1,11 +1,14 @@
 import { Outlet } from "react-router-dom"
 import { ReactFlowProvider } from "@xyflow/react"
+import { SessionProvider } from "./context/SessionContext"
 
 const Providers = () => {
   return (
-    <ReactFlowProvider>
-      <Outlet />
-    </ReactFlowProvider>
+    <SessionProvider>
+      <ReactFlowProvider>
+        <Outlet />
+      </ReactFlowProvider>
+    </SessionProvider>
   )
 }
 
