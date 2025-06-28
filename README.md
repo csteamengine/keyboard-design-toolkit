@@ -1,8 +1,10 @@
 # Keyboard Design Toolkit - Local Development Setup
 
-Welcome! This guide will help you set up the local development environment for the Keyboard Design Toolkit using Supabase, Vite, React, and related technologies.
+The `keyboard-design-toolkit` is an open-source project aiming to combine and improve upon several tools in the custom keyboard design workflow. It draws inspiration from tools like [Keyboard Layout Editor](http://www.keyboard-layout-editor.com/), ai03's Plate Generator, Keebio's Plate Generator, and others. The goal is to provide a unified, modern, and more powerful experience for designing layouts, generating plates, and managing keyboard builds.
 
 ---
+
+# # Local Development Setup Guide
 
 ## Prerequisites
 
