@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react"
+import type React from "react"
+import { useEffect, useState } from "react"
 import { CssBaseline, Box, Button, Paper, IconButton } from "@mui/material"
 import type { GridColDef, GridRowModel } from "@mui/x-data-grid"
 import { DataGrid } from "@mui/x-data-grid"
@@ -6,14 +7,14 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 import { useAppSelector } from "../app/hooks.ts"
 import type { RootState } from "../app/store.ts"
-import WelcomePage from "./WelcomePage.tsx"
 import { supabase } from "../app/supabaseClient.ts"
 import { useNavigate } from "react-router-dom"
+import type { KeyboardLayout } from "../types/KeyboardLayout.ts"
 
 const Keyboards: React.FC = () => {
   const session = useAppSelector((state: RootState) => state.auth.session)
   const user = useAppSelector((state: RootState) => state.auth.user)
-  const [keyboards, setKeyboards] = useState<KeyboardData[]>(null)
+  const [keyboards, setKeyboards] = useState<KeyboardLayout[]>([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,13 +31,11 @@ const Keyboards: React.FC = () => {
         console.error("Error fetching keyboards:", error)
       } else {
         console.log("Fetched keyboards:", data)
-        setKeyboards(data || [])
+        setKeyboards(data)
       }
     }
     void fetchKeyboards()
   }, [user, session])
-
-  if (!session) return <WelcomePage />
 
   const handleAddKeyboard = async () => {
     const { data, error } = await supabase
@@ -178,9 +177,9 @@ const Keyboards: React.FC = () => {
           disableColumnSelector={true}
           processRowUpdate={handleRowUpdate}
           experimentalFeatures={{ newEditingApi: true }}
-          onProcessRowUpdateError={error =>
+          onProcessRowUpdateError={error => {
             console.error("Row update error", error)
-          }
+          }}
           flex={1}
         />
       </Paper>

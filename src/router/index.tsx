@@ -1,59 +1,51 @@
 import { createBrowserRouter } from "react-router-dom"
 import HomePage from "../pages/HomePage.tsx"
-import NotFoundPage from "../pages/404Page.tsx"
 import AuthProtectedRoute from "./AuthProtectedRoute.tsx"
-import Providers from "../Providers.tsx"
 import LoginPage from "../pages/auth/LoginPage.tsx"
 import SignUpPage from "../pages/auth/SignUpPage.tsx"
 import Layout from "../components/Layout.tsx"
 import Keyboards from "../pages/Keyboards.tsx"
 import KeyboardEditor from "../pages/KeyboardEditor.tsx"
+import PublicProtectedRoute from "./PublicProtectedRoute.tsx"
 
 const router = createBrowserRouter([
-  // I recommend you reflect the routes here in the pages folder
   {
-    path: "/",
-    element: <Providers />,
+    path: "/auth",
+    element: <PublicProtectedRoute />,
     children: [
-      // Public routes
       {
-        path: "/auth/login",
+        path: "login",
         element: <LoginPage />,
       },
       {
-        path: "/auth/signup",
+        path: "signup",
         element: <SignUpPage />,
-      },
-      // Auth Protected routes
-      {
-        path: "/",
-        element: <AuthProtectedRoute />,
-        children: [
-          {
-            path: "/",
-            element: <Layout />,
-            children: [
-              {
-                path: "/",
-                element: <HomePage />,
-              },
-              {
-                path: "/keyboards",
-                element: <Keyboards />,
-              },
-              {
-                path: "/keyboards/:keyboardId",
-                element: <KeyboardEditor />,
-              },
-            ],
-          },
-        ],
       },
     ],
   },
   {
-    path: "*",
-    element: <NotFoundPage />,
+    path: "/",
+    element: <AuthProtectedRoute />,
+    children: [
+      {
+        path: "",
+        element: <Layout />,
+        children: [
+          {
+            index: true,
+            element: <HomePage />,
+          },
+          {
+            path: "keyboards",
+            element: <Keyboards />,
+          },
+          {
+            path: "keyboards/:keyboardId",
+            element: <KeyboardEditor />,
+          },
+        ],
+      },
+    ],
   },
 ])
 

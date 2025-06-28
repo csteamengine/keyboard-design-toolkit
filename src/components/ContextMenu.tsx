@@ -1,5 +1,14 @@
+import type { HTMLAttributes } from "react"
 import { useCallback } from "react"
 import { useReactFlow } from "@xyflow/react"
+
+type ContextMenuProps = {
+  id: string
+  top?: number
+  left?: number
+  right?: number
+  bottom?: number
+} & HTMLAttributes<HTMLDivElement>
 
 export default function ContextMenu({
   id,
@@ -8,10 +17,11 @@ export default function ContextMenu({
   right,
   bottom,
   ...props
-}) {
+}: ContextMenuProps) {
   const { getNode, setNodes, addNodes, setEdges } = useReactFlow()
   const duplicateNode = useCallback(() => {
     const node = getNode(id)
+    if (!node) return
     const position = {
       x: node.position.x + 50,
       y: node.position.y + 50,

@@ -34,7 +34,7 @@ const unitSize = 60 // px per 1u
 const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3]
 
 const KeyboardKeyNode = ({ data }: NodeProps) => {
-  const width = data.widthU * unitSize
+  const width = Number(data.widthU) * unitSize
   return (
     <div
       style={{
@@ -50,7 +50,7 @@ const KeyboardKeyNode = ({ data }: NodeProps) => {
         fontFamily: "monospace",
       }}
     >
-      {data.label}
+      {String(data.label)}
     </div>
   )
 }
@@ -59,9 +59,7 @@ const nodeTypes = {
   keyboardKey: KeyboardKeyNode,
 }
 
-type Props = {}
-
-const KeyboardEditor: React.FC<Props> = () => {
+const KeyboardEditor: React.FC = () => {
   const reactFlowWrapper = useRef(null)
   const { keyboardId } = useParams<{ keyboardId: string }>()
   const [loading, setLoading] = useState(true)
@@ -84,7 +82,7 @@ const KeyboardEditor: React.FC<Props> = () => {
   const [edges, setEdges] = useEdgesState([])
 
   const saveFlow = useCallback(async () => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("keyboards")
       .update({ reactflow: reactFlowInstance.toObject() })
       .eq("id", keyboardId)
@@ -173,11 +171,16 @@ const KeyboardEditor: React.FC<Props> = () => {
   useEffect(() => {
     const fetchKeyboard = async () => {
       setLoading(true)
-      const { data, error } = await supabase
-        .from("keyboards")
-        .select("*")
-        .eq("id", keyboardId)
-        .single()
+
+      const {
+        data,
+        error,
+      }: { data: { reactflow: unknown } | null; error: PostgrestError | null } =
+        await supabase
+          .from("keyboards")
+          .select("*")
+          .eq("id", keyboardId)
+          .single()
 
       if (error) {
         setError(error)

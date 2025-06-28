@@ -17,7 +17,7 @@ import { supabase } from "../../app/supabaseClient.ts"
 import { setSession } from "./authSlice.ts"
 import GoogleIcon from "@mui/icons-material/Google"
 import GitHubIcon from "@mui/icons-material/GitHub"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Alert, Card, Link as MuiLink } from "@mui/material"
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
@@ -44,6 +44,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 }))
 
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [emailError, setEmailError] = React.useState(false)
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("")
   const [passwordError, setPasswordError] = React.useState(false)
@@ -70,6 +71,7 @@ export default function LoginPage() {
       setError(error.message)
     } else {
       dispatch(setSession(data.session))
+      void navigate("/", { replace: true }) // Redirect to home on successful login
     }
   }
 

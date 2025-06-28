@@ -1,10 +1,9 @@
-import React, { StrictMode } from "react"
+import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { Provider } from "react-redux"
-import { App } from "./App"
 import { store } from "./app/store"
 import "./index.css"
-import { BrowserRouter, RouterProvider } from "react-router-dom"
+import { RouterProvider } from "react-router-dom"
 import router from "./router"
 
 const container = document.getElementById("root")
