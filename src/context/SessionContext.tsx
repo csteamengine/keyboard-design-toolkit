@@ -1,6 +1,12 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react"
 import LoadingPage from "../pages/LoadingPage"
-import { Session, User } from "@supabase/supabase-js"
+import type { Session, User } from "@supabase/supabase-js"
 import { supabase } from "../app/supabaseClient"
 
 const SessionContext = createContext<{
@@ -11,8 +17,12 @@ const SessionContext = createContext<{
 }>({
   session: null,
   user: null,
-  setUser: () => {},
-  setSession: () => {},
+  setUser: () => {
+    // Empty
+  },
+  setSession: () => {
+    // Empty
+  },
 })
 
 export const useSession = () => {
@@ -33,26 +43,23 @@ export const useUser = () => {
   return user
 }
 
-type Props = { children: React.ReactNode }
+type Props = { children: ReactNode }
 export const SessionProvider = ({ children }: Props) => {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const authStateListener = supabase.auth.onAuthStateChange(
-      async (_, session) => {
-        console.log("Setting user sesssion:", session)
-        setSession(session)
-        setUser(session?.user ?? null)
-        setIsLoading(false)
-      },
-    )
+    const authStateListener = supabase.auth.onAuthStateChange((_, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setIsLoading(false)
+    })
 
     return () => {
       authStateListener.data.subscription.unsubscribe()
     }
-  }, [supabase])
+  }, [])
 
   return (
     <SessionContext.Provider value={{ session, user, setUser, setSession }}>

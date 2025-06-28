@@ -5,16 +5,14 @@ import type { GridColDef, GridRowModel } from "@mui/x-data-grid"
 import { DataGrid } from "@mui/x-data-grid"
 import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
-import { useAppSelector } from "../app/hooks.ts"
-import type { RootState } from "../app/store.ts"
 import { supabase } from "../app/supabaseClient.ts"
 import { useNavigate } from "react-router-dom"
-import type { KeyboardLayout } from "../types/KeyboardLayout.ts"
+import type { Keyboard } from "../types/KeyboardTypes.ts"
 import { useSession } from "../context/SessionContext.tsx"
 
 const Keyboards: React.FC = () => {
   const { user, session } = useSession()
-  const [keyboards, setKeyboards] = useState<KeyboardLayout[]>([])
+  const [keyboards, setKeyboards] = useState<Keyboard[]>([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -137,7 +135,9 @@ const Keyboards: React.FC = () => {
           <IconButton
             size="small"
             color="primary"
-            onClick={() => navigate("/keyboards/" + params.row.id)}
+            onClick={() => {
+              void navigate("/keyboards/" + params.row.id)
+            }}
           >
             <EditIcon />
           </IconButton>
