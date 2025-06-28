@@ -10,10 +10,8 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import Stack from "@mui/material/Stack"
 import { styled } from "@mui/material/styles"
-import { useAppDispatch } from "../../app/hooks.ts"
 import { useState } from "react"
 import { supabase } from "../../app/supabaseClient.ts"
-import { setSession } from "./authSlice.ts"
 import GitHubIcon from "@mui/icons-material/GitHub"
 import GoogleIcon from "@mui/icons-material/Google"
 import { Alert, Card } from "@mui/material"
@@ -47,7 +45,6 @@ export default function SignUp() {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("")
   const [passwordError, setPasswordError] = React.useState(false)
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("")
-  const dispatch = useAppDispatch()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -68,7 +65,6 @@ export default function SignUp() {
       setError(error.message)
       setSuccess(null)
     } else {
-      dispatch(setSession(data.session))
       if (!data.session) {
         setSuccess("Signup successful! Please check your email to confirm.")
       }

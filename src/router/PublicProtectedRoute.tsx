@@ -4,36 +4,18 @@ import { useAppDispatch, useAppSelector } from "../app/hooks.ts"
 import type { RootState } from "../pages/auth/store.ts"
 import { supabase } from "../app/supabaseClient.ts"
 import { setSession } from "../pages/auth/authSlice.ts"
+import { useSession } from "../context/SessionContext.tsx"
 
 const AuthProtectedRoute = () => {
   const navigate = useNavigate()
-  const currentSession = useAppSelector(
-    (state: RootState) => state.auth.session,
-  )
-  const dispatch = useAppDispatch()
+  const { user, session } = useSession()
 
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      dispatch(setSession(session))
-    })
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      dispatch(setSession(session))
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [dispatch, navigate])
-
-  useEffect(() => {
-    if (currentSession) {
+    if (session) {
       // If session, route to home
       void navigate("/", { replace: true })
     }
-  }, [currentSession, navigate])
+  }, [session, navigate])
 
   return <Outlet />
 }

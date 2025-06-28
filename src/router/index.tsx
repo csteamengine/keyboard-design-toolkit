@@ -7,41 +7,54 @@ import Layout from "../components/Layout.tsx"
 import Keyboards from "../pages/Keyboards.tsx"
 import KeyboardEditor from "../pages/KeyboardEditor.tsx"
 import PublicProtectedRoute from "./PublicProtectedRoute.tsx"
+import Providers from "../Providers.tsx"
 
 const router = createBrowserRouter([
   {
-    path: "/auth",
-    element: <PublicProtectedRoute />,
+    path: "",
+    element: <Providers />,
     children: [
       {
-        path: "login",
-        element: <LoginPage />,
-      },
-      {
-        path: "signup",
-        element: <SignUpPage />,
-      },
-    ],
-  },
-  {
-    path: "/",
-    element: <AuthProtectedRoute />,
-    children: [
-      {
-        path: "",
-        element: <Layout />,
+        path: "/auth",
+        element: <PublicProtectedRoute />,
         children: [
           {
-            index: true,
-            element: <HomePage />,
+            path: "login",
+            element: <LoginPage />,
           },
           {
-            path: "keyboards",
-            element: <Keyboards />,
+            path: "signup",
+            element: <SignUpPage />,
           },
+        ],
+      },
+      {
+        path: "/",
+        element: <AuthProtectedRoute />,
+        children: [
           {
-            path: "keyboards/:keyboardId",
-            element: <KeyboardEditor />,
+            path: "",
+            element: <Layout />,
+            children: [
+              {
+                index: true,
+                element: <HomePage />,
+              },
+              {
+                path: "keyboards",
+                element: <Keyboards />,
+              },
+              {
+                path: "keyboards/:keyboardId",
+                element: <Providers />,
+                children: [
+                  {
+                    path: "",
+                    element: <KeyboardEditor />,
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
