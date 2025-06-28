@@ -184,7 +184,11 @@ const Keyboards: React.FC = () => {
           flex={1}
         />
       </Paper>
-      <Button onClick={handleAddKeyboard}>Add Keyboard</Button>
+      <Box display="flex" justifyContent="center" mt={2}>
+        <Button variant="contained" color="primary" onClick={handleAddKeyboard}>
+          Add Keyboard
+        </Button>
+      </Box>{" "}
     </Box>
   )
 }

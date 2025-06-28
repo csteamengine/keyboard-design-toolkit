@@ -1,8 +1,9 @@
 import * as React from "react"
+import type { CSSObject, Theme } from "@mui/material/styles"
 import { styled, useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
-import Drawer from "@mui/material/Drawer"
 import CssBaseline from "@mui/material/CssBaseline"
+import MuiDrawer from "@mui/material/Drawer"
 import type { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar"
 import MuiAppBar from "@mui/material/AppBar"
 import Toolbar from "@mui/material/Toolbar"
@@ -13,11 +14,13 @@ import IconButton from "@mui/material/IconButton"
 import MenuIcon from "@mui/icons-material/Menu"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import KeyboardIcon from "@mui/icons-material/Keyboard"
+import HomeIcon from "@mui/icons-material/Home"
 import ListItem from "@mui/material/ListItem"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemText from "@mui/material/ListItemText"
 import AccountCircle from "@mui/icons-material/AccountCircle"
-import { Menu, MenuItem } from "@mui/material"
+import { ListItemIcon, Menu, MenuItem } from "@mui/material"
 import { Link, Outlet } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts"
 import type { RootState } from "../app/store.ts"
@@ -52,28 +55,6 @@ type AppBarProps = {
   open?: boolean
 } & MuiAppBarProps
 
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: prop => prop !== "open",
-})<AppBarProps>(({ theme }) => ({
-  transition: theme.transitions.create(["margin", "width"], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  variants: [
-    {
-      props: ({ open }) => open,
-      style: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: `${drawerWidth}px`,
-        transition: theme.transitions.create(["margin", "width"], {
-          easing: theme.transitions.easing.easeOut,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-      },
-    },
-  ],
-}))
-
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -81,6 +62,75 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   // necessary for content to be below app bar
   ...theme.mixins.toolbar,
   justifyContent: "flex-end",
+}))
+
+const openedMixin = (theme: Theme): CSSObject => ({
+  width: drawerWidth,
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: "hidden",
+})
+
+const closedMixin = (theme: Theme): CSSObject => ({
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  overflowX: "hidden",
+  width: `calc(${theme.spacing(7)} + 1px)`,
+  [theme.breakpoints.up("sm")]: {
+    width: `calc(${theme.spacing(8)} + 1px)`,
+  },
+})
+
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: prop => prop !== "open",
+})<AppBarProps>(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(["width", "margin"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  variants: [
+    {
+      props: ({ open }) => open,
+      style: {
+        marginLeft: drawerWidth,
+        width: `calc(100% - ${drawerWidth}px)`,
+        transition: theme.transitions.create(["width", "margin"], {
+          easing: theme.transitions.easing.sharp,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
+      },
+    },
+  ],
+}))
+
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: prop => prop !== "open",
+})(({ theme }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  boxSizing: "border-box",
+  variants: [
+    {
+      props: ({ open }) => open,
+      style: {
+        ...openedMixin(theme),
+        "& .MuiDrawer-paper": openedMixin(theme),
+      },
+    },
+    {
+      props: ({ open }) => !open,
+      style: {
+        ...closedMixin(theme),
+        "& .MuiDrawer-paper": closedMixin(theme),
+      },
+    },
+  ],
 }))
 
 export default function PersistentDrawerLeft() {
@@ -91,19 +141,64 @@ export default function PersistentDrawerLeft() {
   const [open, setOpen] = React.useState(false)
 
   const menuItems = [
-    { label: "Home", path: "/" },
+    { label: "Home", path: "/", icon: <HomeIcon /> },
     {
       label: "Keyboard Editor",
       path: "/keyboards",
+      icon: <KeyboardIcon />,
     },
   ]
 
-  const drawer = (
+  const drawerContents = (
     <List>
       {menuItems.map(item => (
-        <ListItem key={item.path} disablePadding>
-          <ListItemButton component={Link} to={item.path}>
-            <ListItemText primary={item.label} />
+        <ListItem key={item.path} disablePadding sx={{ display: "block" }}>
+          <ListItemButton
+            sx={[
+              {
+                minHeight: 48,
+                px: 2.5,
+              },
+              open
+                ? {
+                    justifyContent: "initial",
+                  }
+                : {
+                    justifyContent: "center",
+                  },
+            ]}
+            component={Link}
+            to={item.path}
+          >
+            <ListItemIcon
+              sx={[
+                {
+                  minWidth: 0,
+                  justifyContent: "center",
+                },
+                open
+                  ? {
+                      mr: 3,
+                    }
+                  : {
+                      mr: "auto",
+                    },
+              ]}
+            >
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              sx={[
+                open
+                  ? {
+                      opacity: 1,
+                    }
+                  : {
+                      opacity: 0,
+                    },
+              ]}
+            />
           </ListItemButton>
         </ListItem>
       ))}
@@ -175,19 +270,7 @@ export default function PersistentDrawerLeft() {
           </Menu>
         </Toolbar>
       </AppBar>
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={open}
-      >
+      <Drawer variant="permanent" anchor="left" open={open}>
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
             {theme.direction === "ltr" ? (
@@ -198,7 +281,7 @@ export default function PersistentDrawerLeft() {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        {drawer}
+        {drawerContents}
       </Drawer>
       <Main open={open}>
         <DrawerHeader />
