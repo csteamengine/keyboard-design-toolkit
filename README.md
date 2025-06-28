@@ -1,4 +1,4 @@
-# Keyboard Design Toolkit - Local Development Setup
+# Keyboard Design Toolkit
 
 The `keyboard-design-toolkit` is an open-source project aiming to combine and improve upon several tools in the custom keyboard design workflow. It draws inspiration from tools like [Keyboard Layout Editor](http://www.keyboard-layout-editor.com/), ai03's Plate Generator, Keebio's Plate Generator, and others. The goal is to provide a unified, modern, and more powerful experience for designing layouts, generating plates, and managing keyboard builds.
 
