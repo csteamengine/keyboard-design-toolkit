@@ -21,7 +21,7 @@ import ListItemButton from "@mui/material/ListItemButton"
 import ListItemText from "@mui/material/ListItemText"
 import AccountCircle from "@mui/icons-material/AccountCircle"
 import { ListItemIcon, Menu, MenuItem } from "@mui/material"
-import { Link, Outlet } from "react-router-dom"
+import { Link, Outlet, useLocation } from "react-router-dom"
 import { supabase } from "../app/supabaseClient.ts"
 import { useLogout, useSession } from "../context/SessionContext.tsx"
 
@@ -136,6 +136,7 @@ export default function PersistentDrawerLeft() {
   const { user } = useSession()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const [open, setOpen] = React.useState(false)
+  const location = useLocation()
 
   const menuItems = [
     { label: "Home", path: "/", icon: <HomeIcon /> },
@@ -151,6 +152,7 @@ export default function PersistentDrawerLeft() {
       {menuItems.map(item => (
         <ListItem key={item.path} disablePadding sx={{ display: "block" }}>
           <ListItemButton
+            selected={location.pathname === item.path}
             sx={[
               {
                 minHeight: 48,

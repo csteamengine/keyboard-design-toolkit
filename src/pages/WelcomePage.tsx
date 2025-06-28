@@ -25,7 +25,7 @@ export const WelcomePage: React.FC = () => {
         <Typography variant="h2" gutterBottom>
           Keyboard Design Toolkit
         </Typography>
-        <Typography variant="h6" color="text.secondary" paragraph>
+        <Typography variant="h6" color="text.secondary" component="p">
           Craft custom keyboard layouts, export designs, and bring your ideas to
           life.
         </Typography>
