@@ -25,7 +25,7 @@ import { getHelperLines } from "../utils/utils.ts"
 import HelperLines from "../components/HelperLines.tsx"
 import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
-import type { KeyboardLayout } from "../types/KeyboardLayout.ts"
+import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
 import { Paper } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 
