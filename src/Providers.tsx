@@ -1,12 +1,12 @@
-import { Outlet } from "react-router-dom";
-import { SessionProvider } from "./context/SessionContext";
+import { Outlet } from "react-router-dom"
+import { ReactFlowProvider } from "@xyflow/react"
 
 const Providers = () => {
   return (
-    <SessionProvider>
+    <ReactFlowProvider>
       <Outlet />
-    </SessionProvider>
-  );
-};
+    </ReactFlowProvider>
+  )
+}
 
-export default Providers;
+export default Providers

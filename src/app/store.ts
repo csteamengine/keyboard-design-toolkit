@@ -1,7 +1,7 @@
 import type { Action, ThunkAction } from "@reduxjs/toolkit"
 import { combineSlices, configureStore } from "@reduxjs/toolkit"
 import { setupListeners } from "@reduxjs/toolkit/query"
-import { authSlice } from "../features/auth/authSlice"
+import { authSlice } from "../pages/auth/authSlice"
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
@@ -17,7 +17,7 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
     // Adding the api middleware enables caching, invalidation, polling,
     // and other useful features of `rtk-query`.
     // middleware: getDefaultMiddleware => {
-      // return getDefaultMiddleware().concat(authSlice.middleware)
+    // return getDefaultMiddleware().concat(authSlice.middleware)
     // },
     preloadedState,
   })

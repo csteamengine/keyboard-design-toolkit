@@ -1,12 +1,11 @@
-import { StrictMode } from "react"
+import React, { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { Provider } from "react-redux"
 import { App } from "./App"
 import { store } from "./app/store"
 import "./index.css"
-import { BrowserRouter } from "react-router-dom"
-import { ApolloProvider } from "@apollo/client"
-import { apolloClient } from "./app/apolloClient.ts"
+import { BrowserRouter, RouterProvider } from "react-router-dom"
+import router from "./router"
 
 const container = document.getElementById("root")
 
@@ -15,13 +14,9 @@ if (container) {
 
   root.render(
     <StrictMode>
-      <BrowserRouter>
-        <Provider store={store}>
-          <ApolloProvider client={apolloClient}>
-            <App />
-          </ApolloProvider>
-        </Provider>
-      </BrowserRouter>
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
     </StrictMode>,
   )
 } else {

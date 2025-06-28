@@ -1,6 +1,7 @@
 import type React from "react"
 import { useRef } from "react"
 import { useCallback, useEffect, useState } from "react"
+import type { NodeChange, NodeProps } from "@xyflow/react"
 import {
   ReactFlow,
   useNodesState,
@@ -10,7 +11,6 @@ import {
   Controls,
   MiniMap,
   type Node,
-  type Edge,
   type Connection,
   applyNodeChanges,
   applyEdgeChanges,
@@ -21,20 +21,61 @@ import "@xyflow/react/dist/style.css"
 import { useParams } from "react-router-dom"
 import { supabase } from "../app/supabaseClient"
 import type { PostgrestError } from "@supabase/supabase-js"
+import { getHelperLines } from "../utils/utils.ts"
+import HelperLines from "../components/HelperLines.tsx"
+import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
+import type { KeyboardLayout } from "../types/KeyboardLayout.ts"
+import { Paper } from "@mui/material"
+import { useTheme } from "@mui/material/styles"
 
-type KeyboardLayout = {
-  nodes: Node[]
-  edges: Edge[]
+const unitSize = 60 // px per 1u
+
+const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3]
+
+const KeyboardKeyNode = ({ data }: NodeProps) => {
+  const width = data.widthU * unitSize
+  return (
+    <div
+      style={{
+        width,
+        height: unitSize,
+        border: "1px solid #555",
+        borderRadius: 4,
+        backgroundColor: "#f0f0f0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 14,
+        fontFamily: "monospace",
+      }}
+    >
+      {data.label}
+    </div>
+  )
+}
+
+const nodeTypes = {
+  keyboardKey: KeyboardKeyNode,
 }
 
 type Props = {}
 
 const KeyboardEditor: React.FC<Props> = () => {
+  const reactFlowWrapper = useRef(null)
   const { keyboardId } = useParams<{ keyboardId: string }>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<PostgrestError | null>(null)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reactFlowInstance = useReactFlow()
+  const { screenToFlowPosition } = useReactFlow()
+  const theme = useTheme()
+
+  const [helperLineHorizontal, setHelperLineHorizontal] = useState<
+    number | undefined
+  >(undefined)
+  const [helperLineVertical, setHelperLineVertical] = useState<
+    number | undefined
+  >(undefined)
 
   const [nodes, setNodes] = useNodesState([])
   const [edges, setEdges] = useEdgesState([])
@@ -49,10 +90,8 @@ const KeyboardEditor: React.FC<Props> = () => {
 
     if (error) {
       console.error("Error saving layout:", error.message)
-    } else {
-      console.log("Layout saved", data)
     }
-  }, [nodes, edges, keyboardId])
+  }, [reactFlowInstance, keyboardId])
 
   const scheduleSave = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -65,12 +104,48 @@ const KeyboardEditor: React.FC<Props> = () => {
   }, [saveFlow])
 
   // === Change Handlers ===
+  const updateHelperLines = useCallback(
+    (changes: NodeChange[], nodes: Node[]) => {
+      // reset the helper lines (clear existing lines, if any)
+      setHelperLineHorizontal(undefined)
+      setHelperLineVertical(undefined)
+
+      // this will be true if it's a single node being dragged
+      // inside we calculate the helper lines and snap position for the position where the node is being moved to
+      if (
+        changes.length === 1 &&
+        changes[0].type === "position" &&
+        changes[0].dragging &&
+        changes[0].position
+      ) {
+        const helperLines = getHelperLines(changes[0], nodes)
+
+        // if we have a helper line, we snap the node to the helper line position
+        // this is being done by manipulating the node position inside the change object
+        changes[0].position.x =
+          helperLines.snapPosition.x ?? changes[0].position.x
+        changes[0].position.y =
+          helperLines.snapPosition.y ?? changes[0].position.y
+
+        // if helper lines are returned, we set them so that they can be displayed
+        setHelperLineHorizontal(helperLines.horizontal)
+        setHelperLineVertical(helperLines.vertical)
+      }
+
+      return changes
+    },
+    [],
+  )
+
   const onNodesChange = useCallback(
     changes => {
-      setNodes(nds => applyNodeChanges(changes, nds))
+      setNodes(nds => {
+        const updatedChanges = updateHelperLines(changes, nds)
+        return applyNodeChanges(updatedChanges, nds)
+      })
       scheduleSave()
     },
-    [scheduleSave],
+    [setNodes, scheduleSave, updateHelperLines],
   )
 
   const onEdgesChange = useCallback(
@@ -78,7 +153,7 @@ const KeyboardEditor: React.FC<Props> = () => {
       setEdges(eds => applyEdgeChanges(changes, eds))
       scheduleSave()
     },
-    [scheduleSave],
+    [setEdges, scheduleSave],
   )
 
   const onConnect = useCallback(
@@ -89,7 +164,7 @@ const KeyboardEditor: React.FC<Props> = () => {
         return updated
       })
     },
-    [scheduleSave],
+    [setEdges, scheduleSave],
   )
 
   useEffect(() => {
@@ -105,9 +180,13 @@ const KeyboardEditor: React.FC<Props> = () => {
         setError(error)
         console.error("Supabase error:", error)
       } else {
-        const layout: KeyboardLayout = data.reactflow as KeyboardLayout
-        setNodes(layout.nodes ?? [])
-        setEdges(layout.edges ?? [])
+        const layout: KeyboardLayout = data?.reactflow as KeyboardLayout
+
+        if (layout) {
+          await reactFlowInstance.setViewport(layout.viewport)
+          setNodes(layout.nodes ?? [])
+          setEdges(layout.edges ?? [])
+        }
         console.log(data)
       }
 
@@ -117,28 +196,121 @@ const KeyboardEditor: React.FC<Props> = () => {
     void fetchKeyboard()
   }, [keyboardId, setEdges, setNodes])
 
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault()
+
+      const data = JSON.parse(
+        event.dataTransfer.getData("application/reactflow"),
+      )
+
+      if (!data || data.type !== "keyboardKey") return
+
+      const keyWidth = data.widthU * unitSize
+      const keyHeight = unitSize
+
+      const position = screenToFlowPosition({
+        x: event.clientX - keyWidth / 2,
+        y: event.clientY - keyHeight / 2,
+      })
+
+      const newNode: Node = {
+        id: uuid(),
+        type: "keyboardKey",
+        position,
+        data: {
+          label: `${data.widthU}u`,
+          widthU: data.widthU,
+        },
+      }
+
+      setNodes(nds => nds.concat(newNode))
+    },
+    [screenToFlowPosition, setNodes],
+  )
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = "move"
+  }, [])
+
+  const Sidebar = () => {
+    return (
+      <Paper sx={{ width: 200, padding: 2 }}>
+        <h4>Add Keys</h4>
+        {KEY_SIZES.map(u => (
+          <div
+            key={u}
+            draggable
+            onDragStart={e => {
+              e.dataTransfer.setData(
+                "application/reactflow",
+                JSON.stringify({ type: "keyboardKey", widthU: u }),
+              )
+              e.dataTransfer.effectAllowed = "move"
+            }}
+            style={{
+              width: u * unitSize,
+              height: unitSize,
+              backgroundColor: "#ddd",
+              border: "1px solid #888",
+              borderRadius: 4,
+              marginBottom: 8,
+              textAlign: "center",
+              lineHeight: `${unitSize}px`,
+              fontFamily: "monospace",
+              cursor: "grab",
+            }}
+          >
+            {u}u
+          </div>
+        ))}
+      </Paper>
+    )
+  }
+
   if (loading) return <div>Loading keyboard layout...</div>
   if (error) return <div>Error loading keyboard layout: {error.message}</div>
 
   return (
     <div
-      style={{ width: "100%", height: "100%", display: "flex", flexGrow: 1 }}
+      className="tester"
+      style={{
+        display: "flex",
+        flexGrow: 1,
+        height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
+      }}
     >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        fitView
-        proOptions={{
-          hideAttribution: true,
-        }}
+      <Sidebar />
+      <div
+        ref={reactFlowWrapper}
+        style={{ flexGrow: 1 }}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
       >
-        <MiniMap />
-        <Controls />
-        <Background gap={16} />
-      </ReactFlow>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onMoveEnd={scheduleSave}
+          fitView
+          proOptions={{
+            hideAttribution: true,
+          }}
+          nodeTypes={nodeTypes}
+        >
+          <MiniMap />
+          <Controls />
+          <Background gap={16} />
+          <HelperLines
+            horizontal={helperLineHorizontal}
+            vertical={helperLineVertical}
+          />
+        </ReactFlow>
+      </div>
     </div>
   )
 }

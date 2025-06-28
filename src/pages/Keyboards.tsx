@@ -1,11 +1,7 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { CssBaseline, Box, Button, Paper, IconButton } from "@mui/material"
-import {
-  DataGrid,
-  GridColDef,
-  GridRowModel,
-  GridToolbar,
-} from "@mui/x-data-grid"
+import type { GridColDef, GridRowModel } from "@mui/x-data-grid"
+import { DataGrid } from "@mui/x-data-grid"
 import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 import { useAppSelector } from "../app/hooks.ts"
@@ -17,7 +13,7 @@ import { useNavigate } from "react-router-dom"
 const Keyboards: React.FC = () => {
   const session = useAppSelector((state: RootState) => state.auth.session)
   const user = useAppSelector((state: RootState) => state.auth.user)
-  const [keyboards, setKeyboards] = React.useState<any[]>(null)
+  const [keyboards, setKeyboards] = useState<KeyboardData[]>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -47,42 +43,6 @@ const Keyboards: React.FC = () => {
       .from("keyboards")
       .insert({
         name: "New Keyboard",
-        reactflow: {
-          nodes: [
-            {
-              id: "1",
-              type: "default",
-              position: { x: 100, y: 100 },
-              data: { label: "Key: A" },
-            },
-            {
-              id: "2",
-              type: "default",
-              position: { x: 250, y: 100 },
-              data: { label: "Key: B" },
-            },
-            {
-              id: "3",
-              type: "default",
-              position: { x: 400, y: 100 },
-              data: { label: "Key: C" },
-            },
-          ],
-          edges: [
-            {
-              id: "e1-2",
-              source: "1",
-              target: "2",
-              type: "smoothstep",
-            },
-            {
-              id: "e2-3",
-              source: "2",
-              target: "3",
-              type: "smoothstep",
-            },
-          ],
-        },
       })
       .select()
       .single()

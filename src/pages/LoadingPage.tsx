@@ -1,11 +1,18 @@
-const LoadingPage = () => {
-  return (
-    <main>
-      <section className="main-container">
-        <h1 className="header-text">Loading...</h1>
-      </section>
-    </main>
-  );
-};
+import CircularProgress from "@mui/material/CircularProgress"
+import Box from "@mui/material/Box"
 
-export default LoadingPage;
+export default function LoadingPage() {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <CircularProgress />
+    </Box>
+  )
+}

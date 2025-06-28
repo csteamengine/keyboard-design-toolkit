@@ -2,12 +2,12 @@ import type React from "react"
 import { Typography, CssBaseline, Box } from "@mui/material"
 const HomePage: React.FC = () => {
   return (
-    <Box>
+    <Box m={2}>
       <CssBaseline />
       <Typography variant="h4" gutterBottom>
-        Welcome to the Dashboard
+        Welcome to the Keyboard Design Toolkit
       </Typography>
-      <Typography>This is your main content area.</Typography>
+      <Typography>WIP, of course...</Typography>
     </Box>
   )
 }
