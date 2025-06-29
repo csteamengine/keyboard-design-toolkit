@@ -182,6 +182,13 @@ const KeyboardEditor: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
+      if (!keyboardId) {
+        setNodes([])
+        setEdges([])
+        setName("New Keyboard")
+        setLoading(false)
+        return
+      }
       setLoading(true)
 
       const { data, error } = await fetchKeyboard(keyboardId)

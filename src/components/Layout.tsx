@@ -21,7 +21,7 @@ import ListItemButton from "@mui/material/ListItemButton"
 import ListItemText from "@mui/material/ListItemText"
 import AccountCircle from "@mui/icons-material/AccountCircle"
 import { ListItemIcon, Menu, MenuItem } from "@mui/material"
-import { Link, Outlet, useLocation } from "react-router-dom"
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { supabase } from "../app/supabaseClient.ts"
 import { useLogout, useSession } from "../context/SessionContext.tsx"
 
@@ -133,10 +133,11 @@ const Drawer = styled(MuiDrawer, {
 export default function PersistentDrawerLeft() {
   const theme = useTheme()
   const logout = useLogout()
-  const { user } = useSession()
+  const { user, session } = useSession()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null)
   const [open, setOpen] = React.useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   const menuItems = [
     { label: "Home", path: "/", icon: <HomeIcon /> },
@@ -226,6 +227,7 @@ export default function PersistentDrawerLeft() {
     await supabase.auth.signOut()
     void logout()
     handleMenuClose()
+    void navigate("/auth/login", { replace: true })
   }
 
   return (
@@ -248,12 +250,14 @@ export default function PersistentDrawerLeft() {
           </Typography>
 
           {/* Right-aligned section */}
+
           <Box sx={{ ml: "auto", display: "flex", alignItems: "center" }}>
-            {username && (
+            {session && username && (
               <Typography variant="body1" sx={{ mr: 1 }}>
                 {username}
               </Typography>
             )}
+
             <IconButton color="inherit" onClick={handleMenuOpen}>
               <AccountCircle />
             </IconButton>
@@ -264,8 +268,22 @@ export default function PersistentDrawerLeft() {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-            <MenuItem onClick={() => void handleLogout()}>Logout</MenuItem>
+            {session && (
+              <Box>
+                <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+                <MenuItem onClick={() => void handleLogout()}>Logout</MenuItem>
+              </Box>
+            )}
+            {!session && (
+              <Box>
+                <MenuItem component={Link} to="/auth/login">
+                  Login
+                </MenuItem>
+                <MenuItem component={Link} to="/auth/signup">
+                  Sign Up
+                </MenuItem>
+              </Box>
+            )}
           </Menu>
         </Toolbar>
       </AppBar>

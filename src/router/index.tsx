@@ -15,46 +15,44 @@ const router = createBrowserRouter([
     element: <Providers />,
     children: [
       {
-        path: "/auth",
-        element: <PublicProtectedRoute />,
+        path: "auth/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "auth/signup",
+        element: <SignUpPage />,
+      },
+      {
+        path: "",
+        element: <Layout />,
         children: [
           {
-            path: "login",
-            element: <LoginPage />,
+            index: true,
+            element: <HomePage />,
           },
           {
-            path: "signup",
-            element: <SignUpPage />,
+            path: "keyboards",
+            element: <Keyboards />,
+          },
+          {
+            path: "keyboards/:keyboardId",
+            element: <Providers />,
+            children: [
+              {
+                path: "",
+                element: <KeyboardEditor />,
+              },
+            ],
           },
         ],
       },
       {
-        path: "/",
-        element: <AuthProtectedRoute />,
+        path: "editor",
+        element: <Layout />,
         children: [
           {
-            path: "",
-            element: <Layout />,
-            children: [
-              {
-                index: true,
-                element: <HomePage />,
-              },
-              {
-                path: "keyboards",
-                element: <Keyboards />,
-              },
-              {
-                path: "keyboards/:keyboardId",
-                element: <Providers />,
-                children: [
-                  {
-                    path: "",
-                    element: <KeyboardEditor />,
-                  },
-                ],
-              },
-            ],
+            index: true,
+            element: <KeyboardEditor />,
           },
         ],
       },
