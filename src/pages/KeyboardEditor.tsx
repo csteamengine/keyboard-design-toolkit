@@ -25,7 +25,7 @@ import HelperLines from "../components/HelperLines.tsx"
 import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
-import { Box, Paper, useMediaQuery } from "@mui/material"
+import { Box, Button, Paper, Typography, useMediaQuery } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import {
   useFetchKeyboard,
@@ -34,6 +34,9 @@ import {
 import { GridCheckIcon } from "@mui/x-data-grid"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
+import IconButton from "@mui/material/IconButton"
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
+import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 
 const unitSize = 60 // px per 1u
 
@@ -78,6 +81,9 @@ const KeyboardEditor: React.FC = () => {
   const { screenToFlowPosition } = useReactFlow()
   const theme = useTheme()
   const ref = useRef(null)
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<
     number | undefined
@@ -190,8 +196,9 @@ const KeyboardEditor: React.FC = () => {
           await reactFlowInstance.setViewport(layout.viewport)
           setNodes(layout.nodes ?? [])
           setEdges(layout.edges ?? [])
+          setName(data?.name ?? "")
+          setDescription(data?.description ?? "")
         }
-        console.log(data)
       }
 
       setLoading(false)
@@ -245,7 +252,7 @@ const KeyboardEditor: React.FC = () => {
         sx={{
           padding: 2,
           ml: 1,
-          position: "fixed",
+          position: "absolute",
           zIndex: 1200,
           left: "50%",
           bottom: 24,
@@ -289,6 +296,40 @@ const KeyboardEditor: React.FC = () => {
     )
   }
 
+  const Sidebar = () => {
+    return (
+      <Paper
+        classes="charlies-sidebar"
+        sx={{
+          width: open ? 400 : 0,
+          height: "100%",
+          top: 0,
+          left: 0,
+          overflowY: "auto",
+          padding: open ? 2 : 0,
+          boxShadow: theme.shadows[4],
+          position: "relative",
+        }}
+      >
+        {open && (
+          <Box sx={{ position: "absolute", top: 8, right: 8, zIndex: 1200 }}>
+            <IconButton
+              onClick={() => {
+                setOpen(false)
+              }}
+            >
+              <ChevronLeftIcon />
+            </IconButton>
+          </Box>
+        )}
+        <Typography>{name}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {description || "No description provided."}
+        </Typography>
+      </Paper>
+    )
+  }
+
   const onNodeContextMenu = useCallback(
     (event, node) => {
       // Prevent native context menu from showing
@@ -321,16 +362,39 @@ const KeyboardEditor: React.FC = () => {
       style={{
         display: "flex",
         flexGrow: 1,
+        position: "relative",
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       }}
     >
-      <ShapePanel />
+      <Sidebar />
+      {!open && (
+        <Box sx={{ position: "absolute", top: 8, left: 8, zIndex: 1200 }}>
+          <IconButton
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              backgroundColor: "primary.main",
+              color: "white",
+              "&:hover": {
+                backgroundColor: "primary.dark",
+              },
+            }}
+            onClick={() => {
+              setOpen(true)
+            }}
+          >
+            <ChevronRightIcon />
+          </IconButton>
+        </Box>
+      )}
       <div
         ref={reactFlowWrapper}
         style={{ flexGrow: 1, position: "relative" }}
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
+        <ShapePanel />
         <ReactFlow
           ref={ref}
           nodes={nodes}
