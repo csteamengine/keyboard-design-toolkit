@@ -49,7 +49,10 @@ const HomePage: React.FC = () => {
     void fetchKeyboards()
   }, [user, session])
 
-  const handleAddKeyboard = async () => {
+  const handleNewProject = async () => {
+    if (!user || !session) {
+      void navigate("editor", { replace: true })
+    }
     const { data, error } = await supabase
       .from("keyboards")
       .insert({
@@ -85,7 +88,7 @@ const HomePage: React.FC = () => {
         <Grid item xs={12} sm={6} md={4} key={9999}>
           <Card
             elevation={4}
-            onClick={handleAddKeyboard}
+            onClick={handleNewProject}
             sx={{
               height: 120,
               cursor: "pointer",
