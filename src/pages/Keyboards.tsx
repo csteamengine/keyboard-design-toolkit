@@ -13,6 +13,7 @@ import {
   useFetchKeyboards,
 } from "../context/KeyboardContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
+import { useSession } from "../context/SessionContext.tsx"
 
 const Keyboards: React.FC = () => {
   const navigate = useNavigate()
@@ -21,6 +22,7 @@ const Keyboards: React.FC = () => {
   const deleteKeyboard = useDeleteKeyboard()
   const createKeyboard = useCreateKeyboard()
   const [loading, setLoading] = useState(true)
+  const { session, user } = useSession()
 
   useEffect(() => {
     const loadKeyboards = async () => {
@@ -41,6 +43,11 @@ const Keyboards: React.FC = () => {
   }, [fetchKeyboards])
 
   const handleAddKeyboard = async () => {
+    if (!session || !user) {
+      void navigate("/editor", { replace: true })
+      return
+    }
+
     const { data, error } = await createKeyboard({
       name: "New Keyboard",
       description: "Description of the new keyboard",

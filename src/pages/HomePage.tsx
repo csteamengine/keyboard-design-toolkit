@@ -52,6 +52,7 @@ const HomePage: React.FC = () => {
   const handleNewProject = async () => {
     if (!user || !session) {
       void navigate("editor", { replace: true })
+      return
     }
     const { data, error } = await supabase
       .from("keyboards")
