@@ -32,6 +32,8 @@ import {
   useUpdateKeyboard,
 } from "../context/KeyboardContext.tsx"
 import { GridCheckIcon } from "@mui/x-data-grid"
+import LoadingPage from "./LoadingPage.tsx"
+import ErrorPage from "./ErrorPage.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -310,8 +312,8 @@ const KeyboardEditor: React.FC = () => {
   // Close the context menu if it's open whenever the window is clicked.
   const onPaneClick = useCallback(() => setMenu(null), [setMenu])
 
-  if (loading) return <div>Loading keyboard layout...</div>
-  if (error) return <div>Error loading keyboard layout: {error.message}</div>
+  if (loading) return <LoadingPage />
+  if (error) return <ErrorPage />
 
   return (
     <div

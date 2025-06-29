@@ -20,6 +20,7 @@ const Keyboards: React.FC = () => {
   const [keyboards, setKeyboards] = useState<Keyboard[]>([])
   const deleteKeyboard = useDeleteKeyboard()
   const createKeyboard = useCreateKeyboard()
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loadKeyboards = async () => {
@@ -32,8 +33,10 @@ const Keyboards: React.FC = () => {
       }
 
       setKeyboards(data ?? [])
+      setLoading(false)
     }
 
+    setLoading(true)
     void loadKeyboards()
   }, [fetchKeyboards])
 
@@ -162,7 +165,7 @@ const Keyboards: React.FC = () => {
         <DataGrid
           searchable
           rows={keyboards}
-          loading={keyboards === null}
+          loading={loading}
           columns={columns}
           showToolbar={true}
           initialState={{ pagination: { paginationModel } }}
