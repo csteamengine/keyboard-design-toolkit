@@ -26,12 +26,12 @@ import HelperLines from "../components/HelperLines.tsx"
 import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
-import { Paper } from "@mui/material"
+import { Paper, useMediaQuery } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 
 const unitSize = 60 // px per 1u
 
-const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3]
+const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3, 6]
 
 const KeyboardKeyNode = ({ data }: NodeProps) => {
   const width = Number(data.widthU) * unitSize
@@ -70,6 +70,7 @@ const KeyboardEditor: React.FC = () => {
   const { screenToFlowPosition } = useReactFlow()
   const theme = useTheme()
   const ref = useRef(null)
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<
     number | undefined
@@ -240,9 +241,26 @@ const KeyboardEditor: React.FC = () => {
     event.dataTransfer.dropEffect = "move"
   }, [])
 
-  const Sidebar = () => {
+  const ShapePanel = () => {
     return (
-      <Paper sx={{ padding: 2, ml: 1 }}>
+      <Paper
+        elevation={4}
+        sx={{
+          padding: 2,
+          ml: 1,
+          position: "fixed",
+          zIndex: 1200,
+          left: "50%",
+          bottom: 24,
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "center",
+          maxWidth: "1000px",
+        }}
+      >
         {KEY_SIZES.map(u => (
           <div
             key={u}
@@ -309,7 +327,7 @@ const KeyboardEditor: React.FC = () => {
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       }}
     >
-      <Sidebar />
+      <ShapePanel />
       <div
         ref={reactFlowWrapper}
         style={{ flexGrow: 1 }}

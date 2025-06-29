@@ -22,7 +22,7 @@ const Keyboards: React.FC = () => {
       const { data, error } = await supabase
         .from("keyboards")
         .select("*")
-        .order("updated_at", { ascending: false })
+        .order("name", { ascending: true })
         .eq("user_id", user.id)
 
       if (error) {

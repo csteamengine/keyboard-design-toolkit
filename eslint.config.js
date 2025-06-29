@@ -75,6 +75,7 @@ const eslintConfig = config(
           ],
         },
       ],
+      "@typescript-eslint/no-misused-promises": "off",
     },
   },
 
