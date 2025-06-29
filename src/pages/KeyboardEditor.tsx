@@ -19,19 +19,23 @@ import {
 
 import "@xyflow/react/dist/style.css"
 import { useParams } from "react-router-dom"
-import { supabase } from "../app/supabaseClient"
 import type { PostgrestError } from "@supabase/supabase-js"
 import { getHelperLines } from "../utils/utils.ts"
 import HelperLines from "../components/HelperLines.tsx"
 import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
-import { Paper } from "@mui/material"
+import { Box, Paper, useMediaQuery } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
+import {
+  useFetchKeyboard,
+  useUpdateKeyboard,
+} from "../context/KeyboardContext.tsx"
+import { GridCheckIcon } from "@mui/x-data-grid"
 
 const unitSize = 60 // px per 1u
 
-const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3]
+const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3, 6]
 
 const KeyboardKeyNode = ({ data }: NodeProps) => {
   const width = Number(data.widthU) * unitSize
@@ -61,6 +65,8 @@ const nodeTypes = {
 
 const KeyboardEditor: React.FC = () => {
   const reactFlowWrapper = useRef(null)
+  const fetchKeyboard = useFetchKeyboard()
+  const updateKeyboard = useUpdateKeyboard()
   const { keyboardId } = useParams<{ keyboardId: string }>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<PostgrestError | null>(null)
@@ -82,17 +88,15 @@ const KeyboardEditor: React.FC = () => {
   const [edges, setEdges] = useEdgesState([])
 
   const saveFlow = useCallback(async () => {
-    const { error } = await supabase
-      .from("keyboards")
-      .update({ reactflow: reactFlowInstance.toObject() })
-      .eq("id", keyboardId)
-      .select()
-      .single()
+    if (!keyboardId) return
+    const { error } = await updateKeyboard(keyboardId, {
+      reactflow: reactFlowInstance.toObject(),
+    })
 
     if (error) {
       console.error("Error saving layout:", error.message)
     }
-  }, [reactFlowInstance, keyboardId])
+  }, [updateKeyboard, reactFlowInstance, keyboardId])
 
   const scheduleSave = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -169,18 +173,10 @@ const KeyboardEditor: React.FC = () => {
   )
 
   useEffect(() => {
-    const fetchKeyboard = async () => {
+    const load = async () => {
       setLoading(true)
 
-      const {
-        data,
-        error,
-      }: { data: { reactflow: unknown } | null; error: PostgrestError | null } =
-        await supabase
-          .from("keyboards")
-          .select("*")
-          .eq("id", keyboardId)
-          .single()
+      const { data, error } = await fetchKeyboard(keyboardId)
 
       if (error) {
         setError(error)
@@ -199,7 +195,7 @@ const KeyboardEditor: React.FC = () => {
       setLoading(false)
     }
 
-    void fetchKeyboard()
+    void load()
   }, [keyboardId, setEdges, setNodes])
 
   const onDrop = useCallback(
@@ -240,9 +236,26 @@ const KeyboardEditor: React.FC = () => {
     event.dataTransfer.dropEffect = "move"
   }, [])
 
-  const Sidebar = () => {
+  const ShapePanel = () => {
     return (
-      <Paper sx={{ padding: 2, ml: 1 }}>
+      <Paper
+        elevation={4}
+        sx={{
+          padding: 2,
+          ml: 1,
+          position: "fixed",
+          zIndex: 1200,
+          left: "50%",
+          bottom: 24,
+          transform: "translateX(-50%)",
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "center",
+          maxWidth: "1000px",
+        }}
+      >
         {KEY_SIZES.map(u => (
           <div
             key={u}
@@ -309,10 +322,10 @@ const KeyboardEditor: React.FC = () => {
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       }}
     >
-      <Sidebar />
+      <ShapePanel />
       <div
         ref={reactFlowWrapper}
-        style={{ flexGrow: 1 }}
+        style={{ flexGrow: 1, position: "relative" }}
         onDrop={onDrop}
         onDragOver={onDragOver}
       >

@@ -7,42 +7,41 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import EditIcon from "@mui/icons-material/Edit"
 import { supabase } from "../app/supabaseClient.ts"
 import { useNavigate } from "react-router-dom"
+import {
+  useCreateKeyboard,
+  useDeleteKeyboard,
+  useFetchKeyboards,
+} from "../context/KeyboardContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
-import { useSession } from "../context/SessionContext.tsx"
 
 const Keyboards: React.FC = () => {
-  const { user, session } = useSession()
-  const [keyboards, setKeyboards] = useState<Keyboard[]>([])
   const navigate = useNavigate()
+  const fetchKeyboards = useFetchKeyboards()
+  const [keyboards, setKeyboards] = useState<Keyboard[]>([])
+  const deleteKeyboard = useDeleteKeyboard()
+  const createKeyboard = useCreateKeyboard()
 
   useEffect(() => {
-    const fetchKeyboards = async () => {
-      if (!user) return
-
-      const { data, error } = await supabase
-        .from("keyboards")
-        .select("*")
-        .order("updated_at", { ascending: false })
-        .eq("user_id", user.id)
+    const loadKeyboards = async () => {
+      const { data, error } = await fetchKeyboards()
 
       if (error) {
-        console.error("Error fetching keyboards:", error)
-      } else {
-        console.log("Fetched keyboards:", data)
-        setKeyboards(data)
+        // TODO better error messaging to user
+        console.error("Error fetching keyboards:", error.message)
+        return
       }
+
+      setKeyboards(data ?? [])
     }
-    void fetchKeyboards()
-  }, [user, session])
+
+    void loadKeyboards()
+  }, [fetchKeyboards])
 
   const handleAddKeyboard = async () => {
-    const { data, error } = await supabase
-      .from("keyboards")
-      .insert({
-        name: "New Keyboard",
-      })
-      .select()
-      .single()
+    const { data, error } = await createKeyboard({
+      name: "New Keyboard",
+      description: "Description of the new keyboard",
+    })
 
     if (error) {
       console.error("Error adding keyboard:", error)
@@ -56,10 +55,7 @@ const Keyboards: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this keyboard?"))
       return
 
-    const { error } = await supabase
-      .from("keyboards")
-      .delete()
-      .eq("id", keyboardId)
+    const { success, error } = await deleteKeyboard(keyboardId)
 
     if (error) {
       console.error("Error deleting keyboard:", error)
@@ -157,12 +153,12 @@ const Keyboards: React.FC = () => {
     },
   ]
 
-  const paginationModel = { page: 0, pageSize: 5 }
+  const paginationModel = { page: 0, pageSize: 10 }
 
   return (
     <Box>
       <CssBaseline />
-      <Paper sx={{ height: 400, flexGrow: 1, flexDirection: "row", m: 3 }}>
+      <Paper sx={{ flexGrow: 1, flexDirection: "row", m: 3 }}>
         <DataGrid
           searchable
           rows={keyboards}
@@ -170,7 +166,7 @@ const Keyboards: React.FC = () => {
           columns={columns}
           showToolbar={true}
           initialState={{ pagination: { paginationModel } }}
-          pageSizeOptions={[5, 10]}
+          pageSizeOptions={[10, 20]}
           checkboxSelection
           sx={{ border: 0 }}
           disableColumnFilter={true}
@@ -184,7 +180,13 @@ const Keyboards: React.FC = () => {
         />
       </Paper>
       <Box display="flex" justifyContent="center" mt={2}>
-        <Button variant="contained" color="primary" onClick={handleAddKeyboard}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            void handleAddKeyboard()
+          }}
+        >
           Add Keyboard
         </Button>
       </Box>{" "}

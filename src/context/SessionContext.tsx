@@ -1,10 +1,5 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react"
+import type { ReactNode } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import LoadingPage from "../pages/LoadingPage"
 import type { Session, User } from "@supabase/supabase-js"
 import { supabase } from "../app/supabaseClient"
