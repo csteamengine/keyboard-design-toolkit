@@ -37,6 +37,7 @@ import ErrorPage from "./ErrorPage.tsx"
 import IconButton from "@mui/material/IconButton"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import Sidebar from "../components/Sidebar.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -84,6 +85,7 @@ const KeyboardEditor: React.FC = () => {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
+  const [selectedNodes, setSelectedNodes] = useState<Node>([])
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<
     number | undefined
@@ -252,91 +254,6 @@ const KeyboardEditor: React.FC = () => {
     event.dataTransfer.dropEffect = "move"
   }, [])
 
-  const ShapePanel = () => {
-    return (
-      <Paper
-        elevation={4}
-        sx={{
-          padding: 2,
-          ml: 1,
-          position: "absolute",
-          zIndex: 1200,
-          left: "50%",
-          bottom: 24,
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "center",
-          maxWidth: "1000px",
-        }}
-      >
-        {KEY_SIZES.map(u => (
-          <div
-            key={u}
-            draggable
-            onDragStart={e => {
-              e.dataTransfer.setData(
-                "application/reactflow",
-                JSON.stringify({ type: "keyboardKey", widthU: u }),
-              )
-              e.dataTransfer.effectAllowed = "move"
-            }}
-            style={{
-              width: u * unitSize,
-              height: unitSize,
-              backgroundColor: "#ddd",
-              border: "1px solid #888",
-              borderRadius: 4,
-              marginBottom: 8,
-              textAlign: "center",
-              lineHeight: `${unitSize}px`,
-              fontFamily: "monospace",
-              cursor: "grab",
-            }}
-          >
-            {u}u
-          </div>
-        ))}
-      </Paper>
-    )
-  }
-
-  const Sidebar = () => {
-    return (
-      <Paper
-        classes="charlies-sidebar"
-        sx={{
-          width: open ? 400 : 0,
-          height: "100%",
-          top: 0,
-          left: 0,
-          overflowY: "auto",
-          padding: open ? 2 : 0,
-          boxShadow: theme.shadows[4],
-          position: "relative",
-        }}
-      >
-        {open && (
-          <Box sx={{ position: "absolute", top: 8, right: 8, zIndex: 1200 }}>
-            <IconButton
-              onClick={() => {
-                setOpen(false)
-              }}
-            >
-              <ChevronLeftIcon />
-            </IconButton>
-          </Box>
-        )}
-        <Typography>{name}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {description || "No description provided."}
-        </Typography>
-      </Paper>
-    )
-  }
-
   const onNodeContextMenu = useCallback(
     (event, node) => {
       // Prevent native context menu from showing
@@ -374,34 +291,12 @@ const KeyboardEditor: React.FC = () => {
       }}
     >
       <Sidebar />
-      {!open && (
-        <Box sx={{ position: "absolute", top: 8, left: 8, zIndex: 1200 }}>
-          <IconButton
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              backgroundColor: "primary.main",
-              color: "white",
-              "&:hover": {
-                backgroundColor: "primary.dark",
-              },
-            }}
-            onClick={() => {
-              setOpen(true)
-            }}
-          >
-            <ChevronRightIcon />
-          </IconButton>
-        </Box>
-      )}
       <div
         ref={reactFlowWrapper}
         style={{ flexGrow: 1, position: "relative" }}
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
-        <ShapePanel />
         <ReactFlow
           ref={ref}
           nodes={nodes}
@@ -416,6 +311,9 @@ const KeyboardEditor: React.FC = () => {
           fitView
           proOptions={{
             hideAttribution: true,
+          }}
+          onSelectionChange={({ nodes }) => {
+            setSelectedNodes(nodes)
           }}
           nodeTypes={nodeTypes}
         >
