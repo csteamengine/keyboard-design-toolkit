@@ -9,7 +9,7 @@ const AuthProtectedRoute = () => {
   useEffect(() => {
     if (!session) {
       // If no session, redirect to login page
-      void navigate("/auth/login", { replace: true })
+      void navigate("/", { replace: true })
     }
   }, [session, navigate])
 

@@ -36,7 +36,7 @@ const router = createBrowserRouter([
           },
           {
             path: "keyboards/:keyboardId",
-            element: <Providers />,
+            element: <AuthProtectedRoute />,
             children: [
               {
                 path: "",
