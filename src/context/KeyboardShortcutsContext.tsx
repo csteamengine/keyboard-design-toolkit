@@ -99,6 +99,9 @@ export const KeyboardShortcutsProvider = ({
   }, [selectedNodesRef])
 
   const handlePaste = useCallback(() => {
+    setNodes(nodes => nodes.map(node => ({ ...node, selected: false })))
+    setEdges(edges => edges.map(edge => ({ ...edge, selected: false })))
+
     const copiedNodes = clipboardRef.current
     if (copiedNodes.length === 0) return
 
@@ -139,6 +142,8 @@ export const KeyboardShortcutsProvider = ({
       data: { ...node.data },
     }))
 
+    setNodes(nodes => nodes.map(node => ({ ...node, selected: false })))
+    setEdges(edges => edges.map(edge => ({ ...edge, selected: false })))
     recordHistory()
     addNodes(newNodes)
   }, [addNodes, recordHistory, screenToFlowPosition])
