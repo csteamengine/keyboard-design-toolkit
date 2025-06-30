@@ -58,28 +58,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
         onResizeEnd={handleResizeEnd}
         shouldResize={shouldResize}
       />
-      <div
-        style={{
-          height: "100%",
-          width: "100%",
-          position: "relative",
-          border: "1px solid #555",
-          borderRadius: 4,
-          backgroundColor: "#f0f0f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 14,
-          fontFamily: "monospace",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          textOverflow: "ellipsis",
-          padding: "2px 5px",
-          boxSizing: "border-box",
-        }}
-      >
-        {String(label)}
-      </div>
+      <div>{String(label)}</div>
     </>
   )
 }

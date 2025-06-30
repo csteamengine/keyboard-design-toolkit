@@ -9,11 +9,7 @@ import {
 import type { Node, Edge } from "@xyflow/react"
 import { useReactFlow, useStore } from "@xyflow/react"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
-
-type FlowSnapshot = {
-  nodes: Node[]
-  edges: Edge[]
-}
+import { HistoryContext } from "./HistoryContext.tsx"
 
 const KeyboardShortcutsContext = createContext(null)
 
@@ -24,8 +20,8 @@ export const KeyboardShortcutsProvider = ({
 }: {
   children: ReactNode
 }) => {
-  const { getNodes, getEdges, setNodes, setEdges, addNodes, deleteElements } =
-    useReactFlow()
+  const { recordHistory, undo, redo } = useContext(HistoryContext)
+  const { setNodes, setEdges, addNodes, deleteElements } = useReactFlow()
   const { screenToFlowPosition } = useReactFlow()
   const mousePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
 
@@ -61,34 +57,6 @@ export const KeyboardShortcutsProvider = ({
   }, [selectedEdges])
 
   const clipboardRef = useRef<Node[]>([])
-  const historyRef = useRef<FlowSnapshot[]>([])
-  const redoStackRef = useRef<FlowSnapshot[]>([])
-
-  const recordHistory = useCallback(() => {
-    historyRef.current.push({
-      nodes: getNodes(),
-      edges: getEdges(),
-    })
-    redoStackRef.current = []
-  }, [getNodes, getEdges])
-
-  const handleUndo = useCallback(() => {
-    const prev = historyRef.current.pop()
-    if (prev) {
-      redoStackRef.current.push({ nodes: getNodes(), edges: getEdges() })
-      setNodes(prev.nodes)
-      setEdges(prev.edges)
-    }
-  }, [getNodes, getEdges, setNodes, setEdges])
-
-  const handleRedo = useCallback(() => {
-    const next = redoStackRef.current.pop()
-    if (next) {
-      historyRef.current.push({ nodes: getNodes(), edges: getEdges() })
-      setNodes(next.nodes)
-      setEdges(next.edges)
-    }
-  }, [getNodes, getEdges, setNodes, setEdges])
 
   const handleCopy = useCallback(() => {
     clipboardRef.current = selectedNodesRef.current.map(node => ({
@@ -151,9 +119,8 @@ export const KeyboardShortcutsProvider = ({
       }
     })
 
-    setNodes(nodes => nodes.map(node => ({ ...node, selected: false })))
-    setEdges(edges => edges.map(edge => ({ ...edge, selected: false })))
     recordHistory()
+
     addNodes(newNodes)
   }, [setEdges, setNodes, addNodes, recordHistory, screenToFlowPosition])
 
@@ -179,12 +146,12 @@ export const KeyboardShortcutsProvider = ({
 
       if (mod && e.key === "z" && !e.shiftKey) {
         e.preventDefault()
-        handleUndo()
+        undo()
       }
 
       if ((mod && e.key === "y") || (mod && e.key === "z" && e.shiftKey)) {
         e.preventDefault()
-        handleRedo()
+        redo()
       }
 
       if (e.key === "Escape") {
@@ -212,7 +179,7 @@ export const KeyboardShortcutsProvider = ({
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [handleDelete, handleCopy, handlePaste, handleUndo, handleRedo])
+  }, [setEdges, setNodes, handleDelete, handleCopy, handlePaste, undo, redo])
 
   return (
     <KeyboardShortcutsContext.Provider value={null}>

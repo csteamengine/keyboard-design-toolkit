@@ -1,7 +1,7 @@
-import type React from "react"
+import React, { useContext } from "react"
 import { useRef } from "react"
 import { useCallback, useEffect, useState } from "react"
-import type { NodeChange, NodeProps } from "@xyflow/react"
+import type { NodeChange } from "@xyflow/react"
 import {
   ReactFlow,
   useNodesState,
@@ -35,6 +35,7 @@ import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
 import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
+import { HistoryContext } from "../context/HistoryContext.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -55,6 +56,7 @@ const KeyboardEditor: React.FC = () => {
   const { screenToFlowPosition } = useReactFlow()
   const theme = useTheme()
   const ref = useRef(null)
+  const { recordHistory } = useContext(HistoryContext)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -149,11 +151,17 @@ const KeyboardEditor: React.FC = () => {
       setEdges(eds => {
         const updated = addEdge(connection, eds)
         scheduleSave()
+        recordHistory()
         return updated
       })
     },
-    [setEdges, scheduleSave],
+    [setEdges, scheduleSave, recordHistory],
   )
+
+  const onNodeDragStart = useCallback(() => {
+    console.log("Drag started")
+    recordHistory()
+  }, [recordHistory])
 
   useEffect(() => {
     const load = async () => {
@@ -294,6 +302,7 @@ const KeyboardEditor: React.FC = () => {
           onConnect={onConnect}
           onMoveEnd={scheduleSave}
           onNodeContextMenu={onNodeContextMenu}
+          onNodeDragStart={onNodeDragStart}
           onPaneClick={onPaneClick}
           fitView
           proOptions={{
