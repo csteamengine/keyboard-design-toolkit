@@ -1,19 +1,51 @@
-import { NodeProps, NodeResizer, useUpdateNodeInternals } from "@xyflow/react"
-import { memo, useEffect } from "react"
+import {
+  NodeProps,
+  NodeResizer,
+  useReactFlow,
+  useUpdateNodeInternals,
+} from "@xyflow/react"
+import { memo, useCallback, useEffect, useState } from "react"
 
 const unitSize = 60 // px per 1u
 
 function KeyboardKey({ id, data, selected }: NodeProps) {
+  const [label, setLabel] = useState(data.label)
   const updateNodeInternals = useUpdateNodeInternals()
 
   const keyWidth =
     data.width ?? (data.widthU ? data.widthU * unitSize : unitSize)
   const keyHeight =
     data.height ?? (data.heightU ? data.heightU * unitSize : unitSize)
-  //
-  // useEffect(() => {
-  //   updateNodeInternals(id)
-  // }, [keyWidth, keyHeight, id, updateNodeInternals])
+
+  const handleResize = useCallback(
+    (_: any, { width, height }: { width: number; height: number }) => {
+      const widthU = width / unitSize
+      const heightU = height / unitSize
+      const maxU = Math.max(widthU, heightU)
+      setLabel(`${String(maxU)}U`)
+      data.label = `${String(maxU)}U`
+      updateNodeInternals(id)
+    },
+    [updateNodeInternals, id],
+  )
+
+  const handleResizeEnd = useCallback(() => {
+    updateNodeInternals(id)
+  }, [id, updateNodeInternals])
+
+  const shouldResize = useCallback(
+    (_: any, { width, height }: { width: number; height: number }) => {
+      const keyHeight = height / unitSize
+      const keyWidth = width / unitSize
+
+      return (
+        (keyHeight == 1 && keyWidth == 1) ||
+        (keyHeight > 1 && keyWidth == 1) ||
+        (keyWidth > 1 && keyHeight == 1)
+      )
+    },
+    [],
+  )
 
   return (
     <>
@@ -22,9 +54,9 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
         isVisible={selected}
         minWidth={unitSize}
         minHeight={unitSize}
-        handleStyle={{
-          display: "none",
-        }}
+        onResize={handleResize}
+        onResizeEnd={handleResizeEnd}
+        shouldResize={shouldResize}
       />
       <div
         style={{
@@ -46,7 +78,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
           boxSizing: "border-box",
         }}
       >
-        {String(data.label)}
+        {String(label)}
       </div>
     </>
   )

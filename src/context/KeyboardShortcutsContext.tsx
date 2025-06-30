@@ -131,22 +131,31 @@ export const KeyboardShortcutsProvider = ({
       y: (minY + maxY) / 2,
     }
 
-    const newNodes = copiedNodes.map(node => ({
-      ...node,
-      id: uuid(),
-      position: {
-        x: node.position.x - selectionCenter.x + centerPos.x,
-        y: node.position.y - selectionCenter.y + centerPos.y,
-      },
-      selected: true,
-      data: { ...node.data },
-    }))
+    const unitSize = 60 / 4 // or whatever your snapping grid size is
+
+    const snapToGrid = (val: number) => Math.round(val / unitSize) * unitSize
+
+    const newNodes = copiedNodes.map(node => {
+      const rawX = node.position.x - selectionCenter.x + centerPos.x
+      const rawY = node.position.y - selectionCenter.y + centerPos.y
+
+      return {
+        ...node,
+        id: uuid(),
+        position: {
+          x: snapToGrid(rawX),
+          y: snapToGrid(rawY),
+        },
+        selected: true,
+        data: { ...node.data },
+      }
+    })
 
     setNodes(nodes => nodes.map(node => ({ ...node, selected: false })))
     setEdges(edges => edges.map(edge => ({ ...edge, selected: false })))
     recordHistory()
     addNodes(newNodes)
-  }, [addNodes, recordHistory, screenToFlowPosition])
+  }, [setEdges, setNodes, addNodes, recordHistory, screenToFlowPosition])
 
   const handleDelete = useCallback(() => {
     if (selectedNodes.length === 0 && selectedEdges.length === 0) return
