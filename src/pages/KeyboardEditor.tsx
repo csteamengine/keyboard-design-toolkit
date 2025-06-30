@@ -216,6 +216,8 @@ const KeyboardEditor: React.FC = () => {
           widthU: data.widthU,
           heightU: data.heightU ?? 1,
         },
+        width: keyWidth,
+        height: keyHeight,
       }
 
       setNodes(nds => nds.concat(newNode))
