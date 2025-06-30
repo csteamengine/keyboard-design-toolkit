@@ -29,9 +29,9 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-export default function Sidebar() {
+export default function EditorSidebar() {
   const [open, setOpen] = useState(false)
-  const [activePanel, setActivePanel] = useState(null) // "menu" | "info" | "settings" | null
+  const [activePanel, setActivePanel] = useState("menu") // "menu" | "info" | "settings" | ""
 
   const handleTabChange = panelKey => {
     setActivePanel(prev => (prev === panelKey ? null : panelKey))
@@ -104,7 +104,11 @@ export default function Sidebar() {
                 onDragStart={e => {
                   e.dataTransfer.setData(
                     "application/reactflow",
-                    JSON.stringify({ type: "keyboardKey", widthU: u }),
+                    JSON.stringify({
+                      type: "keyboardKey",
+                      widthU: u,
+                      heightU: 1,
+                    }),
                   )
                   e.dataTransfer.effectAllowed = "move"
                 }}
