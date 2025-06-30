@@ -1,0 +1,208 @@
+import type { ReactNode } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from "react"
+import type { Node, Edge } from "@xyflow/react"
+import { useReactFlow, useStore } from "@xyflow/react"
+import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
+
+type FlowSnapshot = {
+  nodes: Node[]
+  edges: Edge[]
+}
+
+const KeyboardShortcutsContext = createContext(null)
+
+export const useKeyboardShortcuts = () => useContext(KeyboardShortcutsContext)
+
+export const KeyboardShortcutsProvider = ({
+  children,
+}: {
+  children: ReactNode
+}) => {
+  const { getNodes, getEdges, setNodes, setEdges, addNodes, deleteElements } =
+    useReactFlow()
+  const { screenToFlowPosition } = useReactFlow()
+  const mousePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+
+  const selectedNodesRef = useRef<Node[]>([])
+  const selectedEdgesRef = useRef<Edge[]>([])
+
+  const selectedNodes = useStore(
+    state => state.nodes.filter(n => n.selected),
+    (a, b) => a.length === b.length && a.every((n, i) => n.id === b[i].id),
+  )
+
+  const selectedEdges = useStore(
+    state => state.edges.filter(e => e.selected),
+    (a, b) => a.length === b.length && a.every((e, i) => e.id === b[i].id),
+  )
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePosRef.current = { x: e.clientX, y: e.clientY }
+    }
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+    }
+  }, [])
+
+  useEffect(() => {
+    selectedNodesRef.current = selectedNodes
+  }, [selectedNodes])
+
+  useEffect(() => {
+    selectedEdgesRef.current = selectedEdges
+  }, [selectedEdges])
+
+  const clipboardRef = useRef<Node[]>([])
+  const historyRef = useRef<FlowSnapshot[]>([])
+  const redoStackRef = useRef<FlowSnapshot[]>([])
+
+  const recordHistory = useCallback(() => {
+    historyRef.current.push({
+      nodes: getNodes(),
+      edges: getEdges(),
+    })
+    redoStackRef.current = []
+  }, [getNodes, getEdges])
+
+  const handleUndo = useCallback(() => {
+    const prev = historyRef.current.pop()
+    if (prev) {
+      redoStackRef.current.push({ nodes: getNodes(), edges: getEdges() })
+      setNodes(prev.nodes)
+      setEdges(prev.edges)
+    }
+  }, [getNodes, getEdges, setNodes, setEdges])
+
+  const handleRedo = useCallback(() => {
+    const next = redoStackRef.current.pop()
+    if (next) {
+      historyRef.current.push({ nodes: getNodes(), edges: getEdges() })
+      setNodes(next.nodes)
+      setEdges(next.edges)
+    }
+  }, [getNodes, getEdges, setNodes, setEdges])
+
+  const handleCopy = useCallback(() => {
+    clipboardRef.current = selectedNodesRef.current.map(node => ({
+      ...node,
+      position: { ...node.position },
+      selected: false,
+    }))
+  }, [selectedNodesRef])
+
+  const handlePaste = useCallback(() => {
+    const copiedNodes = clipboardRef.current
+    if (copiedNodes.length === 0) return
+
+    const centerPos = screenToFlowPosition(mousePosRef.current)
+
+    // Safely get width/height with fallback to 0
+    const getNodeBounds = (node: Node) => {
+      const width = node.width ?? 0
+      const height = node.height ?? 0
+      return {
+        left: node.position.x,
+        right: node.position.x + width,
+        top: node.position.y,
+        bottom: node.position.y + height,
+      }
+    }
+
+    // Get overall bounding box
+    const bounds = copiedNodes.map(getNodeBounds)
+    const minX = Math.min(...bounds.map(b => b.left))
+    const maxX = Math.max(...bounds.map(b => b.right))
+    const minY = Math.min(...bounds.map(b => b.top))
+    const maxY = Math.max(...bounds.map(b => b.bottom))
+
+    const selectionCenter = {
+      x: (minX + maxX) / 2,
+      y: (minY + maxY) / 2,
+    }
+
+    const newNodes = copiedNodes.map(node => ({
+      ...node,
+      id: uuid(),
+      position: {
+        x: node.position.x - selectionCenter.x + centerPos.x,
+        y: node.position.y - selectionCenter.y + centerPos.y,
+      },
+      selected: true,
+      data: { ...node.data },
+    }))
+
+    recordHistory()
+    addNodes(newNodes)
+  }, [addNodes, recordHistory, screenToFlowPosition])
+
+  const handleDelete = useCallback(() => {
+    if (selectedNodes.length === 0 && selectedEdges.length === 0) return
+    recordHistory()
+    void deleteElements({ nodes: selectedNodes, edges: selectedEdges })
+  }, [selectedNodes, selectedEdges, deleteElements, recordHistory])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey
+
+      if (mod && e.key === "c") {
+        e.preventDefault()
+        handleCopy()
+      }
+
+      if (mod && e.key === "v") {
+        e.preventDefault()
+        handlePaste()
+      }
+
+      if (mod && e.key === "z" && !e.shiftKey) {
+        e.preventDefault()
+        handleUndo()
+      }
+
+      if ((mod && e.key === "y") || (mod && e.key === "z" && e.shiftKey)) {
+        e.preventDefault()
+        handleRedo()
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault()
+        // Deselect all nodes and edges
+        setNodes(nodes => nodes.map(node => ({ ...node, selected: false })))
+        setEdges(edges => edges.map(edge => ({ ...edge, selected: false })))
+      }
+
+      if (mod && e.key === "a") {
+        e.preventDefault()
+        // Select all nodes
+        setNodes(nodes => nodes.map(node => ({ ...node, selected: true })))
+        // Select all edges
+        setEdges(edges => edges.map(edge => ({ ...edge, selected: true })))
+      }
+
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault()
+        handleDelete()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [handleDelete, handleCopy, handlePaste, handleUndo, handleRedo])
+
+  return (
+    <KeyboardShortcutsContext.Provider value={null}>
+      {children}
+    </KeyboardShortcutsContext.Provider>
+  )
+}

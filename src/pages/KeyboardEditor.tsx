@@ -212,7 +212,7 @@ const KeyboardEditor: React.FC = () => {
         type: "keyboardKey",
         position,
         data: {
-          label: `${data.widthU}u`,
+          label: data.label,
           widthU: data.widthU,
           heightU: data.heightU ?? 1,
         },

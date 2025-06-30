@@ -7,7 +7,8 @@ import InfoIcon from "@mui/icons-material/Info"
 
 const unitSize = 60 // px per 1u
 
-const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3, 6]
+const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3, 6, 6.5]
+const VERTICAL_KEY_SIZES = [1.25, 1.5, 1.75, 2]
 
 type TabPanelProps = {
   children?: ReactNode
@@ -20,11 +21,7 @@ function TabPanel(props: TabPanelProps) {
 
   return (
     <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   )
 }
@@ -94,41 +91,84 @@ export default function EditorSidebar() {
             opacity: open ? 1 : 0,
             transition: "opacity 0.2s ease 0.1s",
             pointerEvents: open ? "auto" : "none",
+            marginRight: "60px",
           }}
         >
           <TabPanel value={activePanel} index="menu">
-            {KEY_SIZES.map(u => (
-              <div
-                key={u}
-                draggable
-                onDragStart={e => {
-                  e.dataTransfer.setData(
-                    "application/reactflow",
-                    JSON.stringify({
-                      type: "keyboardKey",
-                      widthU: u,
-                      heightU: 1,
-                    }),
-                  )
-                  e.dataTransfer.effectAllowed = "move"
-                }}
-                style={{
-                  width: u * unitSize,
-                  height: unitSize,
-                  backgroundColor: "#ddd",
-                  border: "1px solid #888",
-                  borderRadius: 4,
-                  marginBottom: 8,
-                  textAlign: "center",
-                  lineHeight: `${unitSize}px`,
-                  fontFamily: "monospace",
-                  cursor: "grab",
-                }}
-              >
-                {u}u
-              </div>
-            ))}
+            <Box
+              className="charlies-div"
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 1, // theme spacing unit, e.g., 8px if theme.spacing(1) === 8
+                alignItems: "flex-start",
+              }}
+            >
+              {KEY_SIZES.map(u => (
+                <div
+                  key={u}
+                  draggable
+                  onDragStart={e => {
+                    e.dataTransfer.setData(
+                      "application/reactflow",
+                      JSON.stringify({
+                        type: "keyboardKey",
+                        widthU: u,
+                        heightU: 1,
+                        label: `${u}u`,
+                      }),
+                    )
+                    e.dataTransfer.effectAllowed = "move"
+                  }}
+                  style={{
+                    width: u * unitSize * (3 / 4),
+                    height: unitSize * (3 / 4),
+                    backgroundColor: "#ddd",
+                    border: "1px solid #888",
+                    borderRadius: 4,
+                    textAlign: "center",
+                    lineHeight: `${unitSize * (3 / 4)}px`,
+                    fontFamily: "monospace",
+                    cursor: "grab",
+                  }}
+                >
+                  {u}
+                </div>
+              ))}
+              {VERTICAL_KEY_SIZES.map(u => (
+                <div
+                  key={String(u) + "v"}
+                  draggable
+                  onDragStart={e => {
+                    e.dataTransfer.setData(
+                      "application/reactflow",
+                      JSON.stringify({
+                        type: "keyboardKey",
+                        widthU: 1,
+                        heightU: u,
+                        label: `${u}u`,
+                      }),
+                    )
+                    e.dataTransfer.effectAllowed = "move"
+                  }}
+                  style={{
+                    width: unitSize * (3 / 4),
+                    height: u * unitSize * (3 / 4),
+                    backgroundColor: "#ddd",
+                    border: "1px solid #888",
+                    borderRadius: 4,
+                    textAlign: "center",
+                    lineHeight: `${unitSize * (3 / 4)}px`,
+                    fontFamily: "monospace",
+                    cursor: "grab",
+                  }}
+                >
+                  {u}
+                </div>
+              ))}
+            </Box>
           </TabPanel>
+
           <TabPanel value={activePanel} index="info">
             Tab Two Content
           </TabPanel>

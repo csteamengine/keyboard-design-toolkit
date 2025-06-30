@@ -3,14 +3,17 @@ import { ReactFlowProvider } from "@xyflow/react"
 import { SessionProvider } from "./context/SessionContext"
 import { KeyboardProvider } from "./context/KeyboardContext.tsx"
 import { Analytics } from "@vercel/analytics/react"
+import { KeyboardShortcutsProvider } from "./context/KeyboardShortcutsContext.tsx"
 
 const Providers = () => {
   return (
     <SessionProvider>
       <KeyboardProvider>
         <ReactFlowProvider>
-          <Analytics />
-          <Outlet />
+          <KeyboardShortcutsProvider>
+            <Analytics />
+            <Outlet />
+          </KeyboardShortcutsProvider>
         </ReactFlowProvider>
       </KeyboardProvider>
     </SessionProvider>

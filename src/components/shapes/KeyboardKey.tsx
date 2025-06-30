@@ -22,6 +22,9 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
         isVisible={selected}
         minWidth={unitSize}
         minHeight={unitSize}
+        handleStyle={{
+          display: "none",
+        }}
       />
       <div
         style={{
