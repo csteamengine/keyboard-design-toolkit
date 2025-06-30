@@ -199,18 +199,27 @@ const KeyboardEditor: React.FC = () => {
 
       if (!data || data.type !== "keyboardKey") return
 
+      const stepSize = unitSize / 4 // 1u is 60px, so 1/4 of that is 15px
+
       const keyWidth = data.widthU * unitSize
       const keyHeight = data.heightU * unitSize
 
-      const position = screenToFlowPosition({
+      const rawPosition = screenToFlowPosition({
         x: event.clientX - keyWidth / 2,
         y: event.clientY - keyHeight / 2,
       })
 
+      const snapToGrid = (val: number) => Math.round(val / stepSize) * stepSize
+
+      const snappedPosition = {
+        x: snapToGrid(rawPosition.x),
+        y: snapToGrid(rawPosition.y),
+      }
+
       const newNode: Node = {
         id: uuid(),
         type: "keyboardKey",
-        position,
+        position: snappedPosition,
         data: {
           label: data.label,
           widthU: data.widthU,
