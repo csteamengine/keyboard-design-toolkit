@@ -254,57 +254,6 @@ const KeyboardEditor: React.FC = () => {
     event.dataTransfer.dropEffect = "move"
   }, [])
 
-  const ShapePanel = () => {
-    return (
-      <Paper
-        elevation={4}
-        sx={{
-          padding: 2,
-          ml: 1,
-          position: "absolute",
-          zIndex: 1200,
-          left: "50%",
-          bottom: 24,
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "center",
-          maxWidth: "1000px",
-        }}
-      >
-        {KEY_SIZES.map(u => (
-          <div
-            key={u}
-            draggable
-            onDragStart={e => {
-              e.dataTransfer.setData(
-                "application/reactflow",
-                JSON.stringify({ type: "keyboardKey", widthU: u }),
-              )
-              e.dataTransfer.effectAllowed = "move"
-            }}
-            style={{
-              width: u * unitSize,
-              height: unitSize,
-              backgroundColor: "#ddd",
-              border: "1px solid #888",
-              borderRadius: 4,
-              marginBottom: 8,
-              textAlign: "center",
-              lineHeight: `${unitSize}px`,
-              fontFamily: "monospace",
-              cursor: "grab",
-            }}
-          >
-            {u}u
-          </div>
-        ))}
-      </Paper>
-    )
-  }
-
   const onNodeContextMenu = useCallback(
     (event, node) => {
       // Prevent native context menu from showing
@@ -348,7 +297,6 @@ const KeyboardEditor: React.FC = () => {
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
-        <ShapePanel />
         <ReactFlow
           ref={ref}
           nodes={nodes}

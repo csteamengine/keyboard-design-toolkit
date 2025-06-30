@@ -5,6 +5,10 @@ import MenuIcon from "@mui/icons-material/Menu"
 import SettingsIcon from "@mui/icons-material/Settings"
 import InfoIcon from "@mui/icons-material/Info"
 
+const unitSize = 60 // px per 1u
+
+const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3, 6]
+
 type TabPanelProps = {
   children?: ReactNode
   index: number
@@ -93,7 +97,33 @@ export default function Sidebar() {
           }}
         >
           <TabPanel value={activePanel} index="menu">
-            Tab One Content
+            {KEY_SIZES.map(u => (
+              <div
+                key={u}
+                draggable
+                onDragStart={e => {
+                  e.dataTransfer.setData(
+                    "application/reactflow",
+                    JSON.stringify({ type: "keyboardKey", widthU: u }),
+                  )
+                  e.dataTransfer.effectAllowed = "move"
+                }}
+                style={{
+                  width: u * unitSize,
+                  height: unitSize,
+                  backgroundColor: "#ddd",
+                  border: "1px solid #888",
+                  borderRadius: 4,
+                  marginBottom: 8,
+                  textAlign: "center",
+                  lineHeight: `${unitSize}px`,
+                  fontFamily: "monospace",
+                  cursor: "grab",
+                }}
+              >
+                {u}u
+              </div>
+            ))}
           </TabPanel>
           <TabPanel value={activePanel} index="info">
             Tab Two Content
