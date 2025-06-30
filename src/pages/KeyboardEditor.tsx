@@ -18,6 +18,7 @@ import {
 } from "@xyflow/react"
 
 import "@xyflow/react/dist/style.css"
+import "../styles.css"
 import { useParams } from "react-router-dom"
 import type { PostgrestError } from "@supabase/supabase-js"
 import { getHelperLines } from "../utils/utils.ts"
@@ -25,48 +26,20 @@ import HelperLines from "../components/HelperLines.tsx"
 import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
-import { Box, Button, Paper, Typography, useMediaQuery } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
 import {
   useFetchKeyboard,
   useUpdateKeyboard,
 } from "../context/KeyboardContext.tsx"
-import { GridCheckIcon } from "@mui/x-data-grid"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
-import IconButton from "@mui/material/IconButton"
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
-import ChevronRightIcon from "@mui/icons-material/ChevronRight"
-import Sidebar from "../components/Sidebar.tsx"
+import EditorSidebar from "../components/EditorSidebar.tsx"
+import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
 
 const unitSize = 60 // px per 1u
 
-const KEY_SIZES = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.75, 3, 6]
-
-const KeyboardKeyNode = ({ data }: NodeProps) => {
-  const width = Number(data.widthU) * unitSize
-  return (
-    <div
-      style={{
-        width,
-        height: unitSize,
-        border: "1px solid #555",
-        borderRadius: 4,
-        backgroundColor: "#f0f0f0",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 14,
-        fontFamily: "monospace",
-      }}
-    >
-      {String(data.label)}
-    </div>
-  )
-}
-
 const nodeTypes = {
-  keyboardKey: KeyboardKeyNode,
+  keyboardKey: KeyboardKey,
 }
 
 const KeyboardEditor: React.FC = () => {
@@ -227,7 +200,7 @@ const KeyboardEditor: React.FC = () => {
       if (!data || data.type !== "keyboardKey") return
 
       const keyWidth = data.widthU * unitSize
-      const keyHeight = unitSize
+      const keyHeight = data.heightU * unitSize
 
       const position = screenToFlowPosition({
         x: event.clientX - keyWidth / 2,
@@ -241,6 +214,7 @@ const KeyboardEditor: React.FC = () => {
         data: {
           label: `${data.widthU}u`,
           widthU: data.widthU,
+          heightU: data.heightU ?? 1,
         },
       }
 
@@ -290,7 +264,7 @@ const KeyboardEditor: React.FC = () => {
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       }}
     >
-      <Sidebar />
+      <EditorSidebar />
       <div
         ref={reactFlowWrapper}
         style={{ flexGrow: 1, position: "relative" }}
@@ -298,6 +272,8 @@ const KeyboardEditor: React.FC = () => {
         onDragOver={onDragOver}
       >
         <ReactFlow
+          snapGrid={[unitSize / 4, unitSize / 4]}
+          snapToGrid={true}
           ref={ref}
           nodes={nodes}
           edges={edges}
@@ -319,7 +295,7 @@ const KeyboardEditor: React.FC = () => {
         >
           <MiniMap pannable={true} />
           <Controls />
-          <Background gap={16} />
+          <Background gap={unitSize / 4} />
           <HelperLines
             horizontal={helperLineHorizontal}
             vertical={helperLineVertical}
