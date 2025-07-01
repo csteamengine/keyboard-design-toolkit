@@ -4,6 +4,8 @@ import { supabase } from "../app/supabaseClient"
 import type { Keyboard } from "../types/KeyboardTypes"
 import { useSession } from "./SessionContext"
 import type { PostgrestError } from "@supabase/supabase-js"
+import { setKeyboard } from "../app/editorSlice.tsx"
+import { useAppDispatch } from "../app/hooks.ts"
 
 type EditorContextType = {
   keyboards: Keyboard[]
@@ -53,6 +55,7 @@ type Props = { children: ReactNode }
 export const EditorProvider = ({ children }: Props) => {
   const { user } = useSession()
   const [keyboards, setKeyboards] = useState<Keyboard[]>([])
+  const dispatch = useAppDispatch()
 
   const fetchKeyboards = useCallback(async () => {
     const { data, error } = await supabase
@@ -73,15 +76,6 @@ export const EditorProvider = ({ children }: Props) => {
       .select("*")
       .eq("id", id)
       .single()
-
-    if (data) {
-      setKeyboards(prev => {
-        const exists = prev.find(k => k.id === id)
-        return exists
-          ? prev.map(k => (k.id === id ? data : k))
-          : [...prev, data]
-      })
-    }
 
     return { data, error }
   }, [])

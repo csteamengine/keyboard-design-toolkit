@@ -13,21 +13,14 @@ import {
   useStore,
 } from "@xyflow/react"
 import { useCallback, useState } from "react"
+import { useAppSelector } from "../app/hooks.ts"
+import { selectSelectedNodes } from "../app/editorSlice.tsx"
 
 export default function KeyDetailsForm() {
   const { setNodes, setEdges, getNodes, getEdges } = useReactFlow()
+  const selectedNodes = useAppSelector(selectSelectedNodes)
 
-  const selectedNodes = useStore(
-    state => state.nodes.filter(n => n.selected),
-    (a, b) => a.length === b.length && a.every((n, i) => n.id === b[i].id),
-  )
-
-  const selectedEdges = useStore(
-    state => state.edges.filter(e => e.selected),
-    (a, b) => a.length === b.length && a.every((e, i) => e.id === b[i].id),
-  )
-
-  const firstNode = selectedNodes[0] ?? null
+  const firstNode = selectedNodes ? (selectedNodes[0] ?? null) : null
   const [height, setHeight] = useState(firstNode?.data.heightU ?? 1)
   const [width, setWidth] = useState(firstNode?.data.widthU ?? 1)
 

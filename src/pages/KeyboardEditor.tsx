@@ -36,6 +36,8 @@ import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
 import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
+import { useAppDispatch } from "../app/hooks.ts"
+import { setKeyboard, setSelectedNodes } from "../app/editorSlice.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -55,10 +57,10 @@ const KeyboardEditor: React.FC = () => {
   const theme = useTheme()
   const ref = useRef(null)
   const { recordHistory, scheduleSave } = useContext(HistoryContext)
+  const dispatch = useAppDispatch()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
-  const [selectedNodes, setSelectedNodes] = useState<Node>([])
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<
     number | undefined
@@ -106,12 +108,14 @@ const KeyboardEditor: React.FC = () => {
 
   const onNodesChange = useCallback(
     changes => {
+      console.log("Changes:", changes)
       setNodes(nds => {
+        console.log(nds)
         const updatedChanges = updateHelperLines(changes, nds)
         return applyNodeChanges(updatedChanges, nds)
       })
     },
-    [setNodes, scheduleSave, updateHelperLines],
+    [setNodes, updateHelperLines],
   )
 
   const onEdgesChange = useCallback(
@@ -167,6 +171,7 @@ const KeyboardEditor: React.FC = () => {
           setEdges(layout.edges ?? [])
           setName(data?.name ?? "")
           setDescription(data?.description ?? "")
+          dispatch(setKeyboard(data))
         }
       }
 
@@ -289,7 +294,7 @@ const KeyboardEditor: React.FC = () => {
             hideAttribution: true,
           }}
           onSelectionChange={({ nodes }) => {
-            setSelectedNodes(nodes)
+            dispatch(setSelectedNodes(nodes))
           }}
           nodeTypes={nodeTypes}
         >
