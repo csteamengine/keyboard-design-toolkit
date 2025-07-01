@@ -29,6 +29,7 @@
     "add": "^2.0.6",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",
+    "notistack": "^3.0.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",

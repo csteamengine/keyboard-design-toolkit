@@ -1,9 +1,10 @@
 import { Tabs, Tab, Box, Typography, Paper } from "@mui/material"
 import type { ReactNode } from "react"
 import { useState } from "react"
-import MenuIcon from "@mui/icons-material/Menu"
+import CategoryIcon from "@mui/icons-material/Category"
+import TuneIcon from "@mui/icons-material/Tune"
 import SettingsIcon from "@mui/icons-material/Settings"
-import InfoIcon from "@mui/icons-material/Info"
+import KeyDetailsForm from "./KeyDetailsForm.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -28,7 +29,7 @@ function TabPanel(props: TabPanelProps) {
 
 export default function EditorSidebar() {
   const [open, setOpen] = useState(false)
-  const [activePanel, setActivePanel] = useState("menu") // "menu" | "info" | "settings" | ""
+  const [activePanel, setActivePanel] = useState("shapes") // "shapes" | "details" | "settings" | ""
 
   const handleTabChange = panelKey => {
     setActivePanel(prev => (prev === panelKey ? null : panelKey))
@@ -94,7 +95,7 @@ export default function EditorSidebar() {
             marginRight: "60px",
           }}
         >
-          <TabPanel value={activePanel} index="menu">
+          <TabPanel value={activePanel} index="shapes">
             <Box
               className="charlies-div"
               sx={{
@@ -169,8 +170,8 @@ export default function EditorSidebar() {
             </Box>
           </TabPanel>
 
-          <TabPanel value={activePanel} index="info">
-            Tab Two Content
+          <TabPanel value={activePanel} index="details">
+            <KeyDetailsForm />
           </TabPanel>
           <TabPanel value={activePanel} index="settings">
             Tab Three Content
@@ -203,19 +204,19 @@ export default function EditorSidebar() {
           }}
         >
           <Tab
-            icon={<MenuIcon />}
-            value="menu"
-            aria-label="Menu"
+            icon={<CategoryIcon />}
+            value="shapes"
+            aria-label="Shapes"
             onClick={() => {
-              handleTabClick("menu")
+              handleTabClick("shapes")
             }}
           />
           <Tab
-            icon={<InfoIcon />}
-            value="info"
-            aria-label="Info"
+            icon={<TuneIcon />}
+            value="details"
+            aria-label="details"
             onClick={() => {
-              handleTabClick("info")
+              handleTabClick("details")
             }}
           />
           <Tab

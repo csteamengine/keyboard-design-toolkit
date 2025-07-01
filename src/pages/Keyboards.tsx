@@ -11,7 +11,7 @@ import {
   useCreateKeyboard,
   useDeleteKeyboard,
   useFetchKeyboards,
-} from "../context/KeyboardContext.tsx"
+} from "../context/EditorContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
 import { useSession } from "../context/SessionContext.tsx"
 

@@ -5,7 +5,7 @@ import type { Keyboard } from "../types/KeyboardTypes"
 import { useSession } from "./SessionContext"
 import type { PostgrestError } from "@supabase/supabase-js"
 
-type KeyboardContextType = {
+type EditorContextType = {
   keyboards: Keyboard[]
   fetchKeyboards: () => Promise<{
     data: Keyboard[] | null
@@ -32,7 +32,7 @@ type KeyboardContextType = {
   }>
 }
 
-const KeyboardContext = createContext<KeyboardContextType>({
+const EditorContext = createContext<EditorContextType>({
   keyboards: [],
   fetchKeyboards: async () => ({ data: null, error: null }),
   fetchKeyboard: async () => ({ data: null, error: null }),
@@ -42,19 +42,15 @@ const KeyboardContext = createContext<KeyboardContextType>({
 })
 
 // Custom hooks
-export const useFetchKeyboards = () =>
-  useContext(KeyboardContext).fetchKeyboards
-export const useFetchKeyboard = () => useContext(KeyboardContext).fetchKeyboard
-export const useCreateKeyboard = () =>
-  useContext(KeyboardContext).createKeyboard
-export const useUpdateKeyboard = () =>
-  useContext(KeyboardContext).updateKeyboard
-export const useDeleteKeyboard = () =>
-  useContext(KeyboardContext).deleteKeyboard
+export const useFetchKeyboards = () => useContext(EditorContext).fetchKeyboards
+export const useFetchKeyboard = () => useContext(EditorContext).fetchKeyboard
+export const useCreateKeyboard = () => useContext(EditorContext).createKeyboard
+export const useUpdateKeyboard = () => useContext(EditorContext).updateKeyboard
+export const useDeleteKeyboard = () => useContext(EditorContext).deleteKeyboard
 
 type Props = { children: ReactNode }
 
-export const KeyboardProvider = ({ children }: Props) => {
+export const EditorProvider = ({ children }: Props) => {
   const { user } = useSession()
   const [keyboards, setKeyboards] = useState<Keyboard[]>([])
 
@@ -140,7 +136,7 @@ export const KeyboardProvider = ({ children }: Props) => {
   }, [])
 
   return (
-    <KeyboardContext.Provider
+    <EditorContext.Provider
       value={{
         keyboards,
         fetchKeyboards,
@@ -151,6 +147,6 @@ export const KeyboardProvider = ({ children }: Props) => {
       }}
     >
       {children}
-    </KeyboardContext.Provider>
+    </EditorContext.Provider>
   )
 }
