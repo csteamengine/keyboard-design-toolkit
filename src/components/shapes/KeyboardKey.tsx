@@ -4,48 +4,20 @@ import {
   useReactFlow,
   useUpdateNodeInternals,
 } from "@xyflow/react"
-import { memo, useCallback, useEffect, useState } from "react"
+import { memo, useCallback } from "react"
 
 const unitSize = 60 // px per 1u
 
 function KeyboardKey({ id, data, selected }: NodeProps) {
-  const [label, setLabel] = useState(data.label)
   const updateNodeInternals = useUpdateNodeInternals()
 
-  const keyWidth =
-    data.width ?? (data.widthU ? data.widthU * unitSize : unitSize)
-  const keyHeight =
-    data.height ?? (data.heightU ? data.heightU * unitSize : unitSize)
-
-  const handleResize = useCallback(
-    (_: any, { width, height }: { width: number; height: number }) => {
-      const widthU = width / unitSize
-      const heightU = height / unitSize
-      const maxU = Math.max(widthU, heightU)
-      setLabel(`${String(maxU)}U`)
-      data.label = `${String(maxU)}U`
-      updateNodeInternals(id)
-    },
-    [updateNodeInternals, id],
-  )
+  const handleResize = useCallback(() => {
+    updateNodeInternals(id)
+  }, [updateNodeInternals, id])
 
   const handleResizeEnd = useCallback(() => {
     updateNodeInternals(id)
   }, [id, updateNodeInternals])
-
-  const shouldResize = useCallback(
-    (_: any, { width, height }: { width: number; height: number }) => {
-      const keyHeight = height / unitSize
-      const keyWidth = width / unitSize
-
-      return (
-        (keyHeight == 1 && keyWidth == 1) ||
-        (keyHeight > 1 && keyWidth == 1) ||
-        (keyWidth > 1 && keyHeight == 1)
-      )
-    },
-    [],
-  )
 
   return (
     <>
@@ -56,9 +28,18 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
         minHeight={unitSize}
         onResize={handleResize}
         onResizeEnd={handleResizeEnd}
-        shouldResize={shouldResize}
+        handleStyle={{
+          width: 2,
+          height: 2,
+          border: "none",
+        }}
+        lineStyle={{
+          borderWidth: 1,
+        }}
       />
-      <div>{String(label)}</div>
+      <div>{String(data.label)}</div>
+      <div>{String(data.label)}</div>
+      <div>{String(data.label)}</div>
     </>
   )
 }

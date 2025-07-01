@@ -1,13 +1,18 @@
 import type { ReactNode } from "react"
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 import { useMemo } from "react"
 import { createContext, useCallback } from "react"
-import { type Edge, type Node, useReactFlow, useStoreApi } from "@xyflow/react"
+import { type Edge, type Node, useReactFlow } from "@xyflow/react"
+import { useUpdateKeyboard } from "./EditorContext.tsx"
+import { useParams } from "react-router-dom"
+import { enqueueSnackbar } from "notistack"
 
 type HistoryContextType = {
   undo: () => void
   redo: () => void
   recordHistory: () => void
+  scheduleSave: () => void
+  saveFlow: () => Promise<void>
 }
 
 type FlowSnapshot = {
@@ -29,6 +34,12 @@ const initialValue = {
   recordHistory: () => {
     // do nothing.
   },
+  scheduleSave: () => {
+    // do nothing.
+  },
+  saveFlow: async () => {
+    // do nothing.
+  },
 }
 
 export const HistoryContext = createContext<HistoryContextType>(initialValue)
@@ -39,18 +50,49 @@ export const HistoryContext = createContext<HistoryContextType>(initialValue)
 export function HistoryContextProvider({
   children,
 }: HistoryContextProviderProps) {
-  const store = useStoreApi()
   const { setNodes, setEdges, getNodes, getEdges } = useReactFlow()
-  // const { dispatchSaveFlowchart } = useContext(SaveFlowchartContext)
-  const reactFlowInstance = useReactFlow()
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const historyRef = useRef<FlowSnapshot[]>([])
   const redoStackRef = useRef<FlowSnapshot[]>([])
+  const updateKeyboard = useUpdateKeyboard()
+  const reactFlowInstance = useReactFlow()
+  const { keyboardId } = useParams<{ keyboardId: string }>()
+
+  const saveFlow = useCallback(async () => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+      saveTimeoutRef.current = null
+    }
+
+    if (!keyboardId) return
+    const { error } = await updateKeyboard(keyboardId, {
+      reactflow: reactFlowInstance.toObject(),
+    })
+
+    if (error) {
+      console.error("Error saving layout:", error.message)
+      enqueueSnackbar("that was easy!", { variant: "error" })
+    } else {
+      enqueueSnackbar("Layout saved successfully!", {
+        variant: "success",
+      })
+    }
+  }, [updateKeyboard, reactFlowInstance, keyboardId])
+
+  const scheduleSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      void saveFlow()
+    }, 10000) // wait 10s after last change
+  }, [saveFlow])
 
   /**
    * Takes a snapshot in the history for the undo/redo feature.
    */
   const recordHistory = useCallback(() => {
-    console.log("Recording history snapshot")
     historyRef.current.push({
       nodes: getNodes(),
       edges: getEdges(),
@@ -77,8 +119,8 @@ export function HistoryContextProvider({
   }, [getNodes, getEdges, setNodes, setEdges])
 
   const HistoryContextMemo = useMemo(
-    () => ({ undo, redo, recordHistory }),
-    [undo, redo, recordHistory],
+    () => ({ undo, redo, recordHistory, scheduleSave, saveFlow }),
+    [undo, redo, recordHistory, scheduleSave, saveFlow],
   )
 
   return (

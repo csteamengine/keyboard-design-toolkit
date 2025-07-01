@@ -30,7 +30,7 @@ import { useTheme } from "@mui/material/styles"
 import {
   useFetchKeyboard,
   useUpdateKeyboard,
-} from "../context/KeyboardContext.tsx"
+} from "../context/EditorContext.tsx"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
@@ -46,17 +46,15 @@ const nodeTypes = {
 const KeyboardEditor: React.FC = () => {
   const reactFlowWrapper = useRef(null)
   const fetchKeyboard = useFetchKeyboard()
-  const updateKeyboard = useUpdateKeyboard()
   const { keyboardId } = useParams<{ keyboardId: string }>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<PostgrestError | null>(null)
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [menu, setMenu] = useState(null)
   const reactFlowInstance = useReactFlow()
   const { screenToFlowPosition } = useReactFlow()
   const theme = useTheme()
   const ref = useRef(null)
-  const { recordHistory } = useContext(HistoryContext)
+  const { recordHistory, scheduleSave } = useContext(HistoryContext)
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -71,27 +69,6 @@ const KeyboardEditor: React.FC = () => {
 
   const [nodes, setNodes] = useNodesState([])
   const [edges, setEdges] = useEdgesState([])
-
-  const saveFlow = useCallback(async () => {
-    if (!keyboardId) return
-    const { error } = await updateKeyboard(keyboardId, {
-      reactflow: reactFlowInstance.toObject(),
-    })
-
-    if (error) {
-      console.error("Error saving layout:", error.message)
-    }
-  }, [updateKeyboard, reactFlowInstance, keyboardId])
-
-  const scheduleSave = useCallback(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      void saveFlow()
-    }, 800) // wait 800ms after last change
-  }, [saveFlow])
 
   // === Change Handlers ===
   const updateHelperLines = useCallback(
@@ -133,7 +110,6 @@ const KeyboardEditor: React.FC = () => {
         const updatedChanges = updateHelperLines(changes, nds)
         return applyNodeChanges(updatedChanges, nds)
       })
-      scheduleSave()
     },
     [setNodes, scheduleSave, updateHelperLines],
   )
@@ -159,9 +135,12 @@ const KeyboardEditor: React.FC = () => {
   )
 
   const onNodeDragStart = useCallback(() => {
-    console.log("Drag started")
     recordHistory()
   }, [recordHistory])
+
+  const onNodeDragStop = useCallback(() => {
+    scheduleSave()
+  }, [scheduleSave])
 
   useEffect(() => {
     const load = async () => {
@@ -303,6 +282,7 @@ const KeyboardEditor: React.FC = () => {
           onMoveEnd={scheduleSave}
           onNodeContextMenu={onNodeContextMenu}
           onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
           onPaneClick={onPaneClick}
           fitView
           proOptions={{

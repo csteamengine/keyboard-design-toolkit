@@ -5,6 +5,7 @@ import { store } from "./app/store"
 import "./index.css"
 import { RouterProvider } from "react-router-dom"
 import router from "./router"
+import { SnackbarProvider } from "notistack"
 
 const container = document.getElementById("root")
 
@@ -14,6 +15,7 @@ if (container) {
   root.render(
     <StrictMode>
       <Provider store={store}>
+        <SnackbarProvider />
         <RouterProvider router={router} />
       </Provider>
     </StrictMode>,

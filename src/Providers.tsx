@@ -1,15 +1,18 @@
 import { Outlet } from "react-router-dom"
 import { ReactFlowProvider } from "@xyflow/react"
 import { SessionProvider } from "./context/SessionContext"
-import { KeyboardProvider } from "./context/KeyboardContext.tsx"
+import { EditorProvider } from "./context/EditorContext.tsx"
 import { Analytics } from "@vercel/analytics/react"
 import { KeyboardShortcutsProvider } from "./context/KeyboardShortcutsContext.tsx"
 import { HistoryContextProvider } from "./context/HistoryContext.tsx"
+import { useRef } from "react"
 
 const Providers = () => {
+  const reactFlowWrapper = useRef<HTMLDivElement>(null)
+
   return (
     <SessionProvider>
-      <KeyboardProvider>
+      <EditorProvider>
         <ReactFlowProvider>
           <HistoryContextProvider>
             <KeyboardShortcutsProvider>
@@ -18,7 +21,7 @@ const Providers = () => {
             </KeyboardShortcutsProvider>
           </HistoryContextProvider>
         </ReactFlowProvider>
-      </KeyboardProvider>
+      </EditorProvider>
     </SessionProvider>
   )
 }

@@ -24,6 +24,7 @@ export const KeyboardShortcutsProvider = ({
   const { setNodes, setEdges, addNodes, deleteElements } = useReactFlow()
   const { screenToFlowPosition } = useReactFlow()
   const mousePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const { saveFlow } = useContext(HistoryContext)
 
   const selectedNodesRef = useRef<Node[]>([])
   const selectedEdgesRef = useRef<Edge[]>([])
@@ -169,9 +170,10 @@ export const KeyboardShortcutsProvider = ({
         setEdges(edges => edges.map(edge => ({ ...edge, selected: true })))
       }
 
-      if (e.key === "Delete" || e.key === "Backspace") {
+      if (mod && e.key === "s") {
         e.preventDefault()
-        handleDelete()
+        e.stopPropagation()
+        void saveFlow()
       }
     }
 
@@ -179,7 +181,16 @@ export const KeyboardShortcutsProvider = ({
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [setEdges, setNodes, handleDelete, handleCopy, handlePaste, undo, redo])
+  }, [
+    setEdges,
+    setNodes,
+    handleDelete,
+    handleCopy,
+    handlePaste,
+    undo,
+    redo,
+    saveFlow,
+  ])
 
   return (
     <KeyboardShortcutsContext.Provider value={null}>
