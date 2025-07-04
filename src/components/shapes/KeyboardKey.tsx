@@ -5,11 +5,14 @@ import {
   useUpdateNodeInternals,
 } from "@xyflow/react"
 import { memo, useCallback } from "react"
+import { setSelection } from "@testing-library/user-event/dist/cjs/event/selection.js"
+import { useSelection } from "../../context/EditorContext.tsx"
 
 const unitSize = 60 // px per 1u
 
 function KeyboardKey({ id, data, selected }: NodeProps) {
   const updateNodeInternals = useUpdateNodeInternals()
+  const [_, setSelection] = useSelection()
 
   const handleResize = useCallback(() => {
     updateNodeInternals(id)

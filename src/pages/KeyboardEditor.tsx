@@ -27,17 +27,14 @@ import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
 import { useTheme } from "@mui/material/styles"
-import {
-  useFetchKeyboard,
-  useUpdateKeyboard,
-} from "../context/EditorContext.tsx"
+import { useFetchKeyboard, useSelection } from "../context/EditorContext.tsx"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
 import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
 import { useAppDispatch } from "../app/hooks.ts"
-import { setKeyboard, setSelectedNodes } from "../app/editorSlice.tsx"
+import { setKeyboard } from "../app/editorSlice.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -108,11 +105,13 @@ const KeyboardEditor: React.FC = () => {
 
   const onNodesChange = useCallback(
     changes => {
-      console.log("Changes:", changes)
-      setNodes(nds => {
-        console.log(nds)
-        const updatedChanges = updateHelperLines(changes, nds)
-        return applyNodeChanges(updatedChanges, nds)
+      setNodes(prevNodes => {
+        const safeNodes = prevNodes.map(node => ({
+          ...node,
+        }))
+
+        const updatedChanges = updateHelperLines(changes, safeNodes)
+        return applyNodeChanges(updatedChanges, safeNodes)
       })
     },
     [setNodes, updateHelperLines],
@@ -146,6 +145,15 @@ const KeyboardEditor: React.FC = () => {
     scheduleSave()
   }, [scheduleSave])
 
+  function safeCloneNode(node) {
+    return {
+      ...node,
+      data: { ...node.data },
+      position: { ...node.position },
+      measured: node.measured ? { ...node.measured } : undefined,
+    }
+  }
+
   useEffect(() => {
     const load = async () => {
       if (!keyboardId) {
@@ -167,11 +175,15 @@ const KeyboardEditor: React.FC = () => {
 
         if (layout) {
           await reactFlowInstance.setViewport(layout.viewport)
-          setNodes(layout.nodes ?? [])
+
+          const nodesForReactFlow = layout.nodes?.map(safeCloneNode) ?? []
+          const nodesForRedux = layout.nodes?.map(safeCloneNode) ?? []
+
+          setNodes(nodesForReactFlow)
           setEdges(layout.edges ?? [])
           setName(data?.name ?? "")
           setDescription(data?.description ?? "")
-          dispatch(setKeyboard(data))
+          dispatch(setKeyboard({ ...data, nodes: nodesForRedux }))
         }
       }
 
@@ -267,7 +279,10 @@ const KeyboardEditor: React.FC = () => {
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       }}
     >
-      <EditorSidebar />
+      <EditorSidebar
+        updateNodes={setNodes}
+        selectedNodes={nodes.filter((n: Node) => n.selected)}
+      />
       <div
         ref={reactFlowWrapper}
         style={{ flexGrow: 1, position: "relative" }}
@@ -294,7 +309,7 @@ const KeyboardEditor: React.FC = () => {
             hideAttribution: true,
           }}
           onSelectionChange={({ nodes }) => {
-            dispatch(setSelectedNodes(nodes))
+            // setSelection(nodes)
           }}
           nodeTypes={nodeTypes}
         >
