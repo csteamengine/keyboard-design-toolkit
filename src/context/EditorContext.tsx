@@ -1,9 +1,10 @@
-import type { ReactNode } from "react"
+import type { Dispatch, ReactNode, SetStateAction } from "react"
 import { createContext, useContext, useState, useCallback } from "react"
 import { supabase } from "../app/supabaseClient"
 import type { Keyboard } from "../types/KeyboardTypes"
 import { useSession } from "./SessionContext"
 import type { PostgrestError } from "@supabase/supabase-js"
+import type { Node } from "@xyflow/react"
 
 type EditorContextType = {
   keyboards: Keyboard[]
@@ -30,6 +31,10 @@ type EditorContextType = {
     success: boolean
     error: PostgrestError | null
   }>
+  selectionState: [
+    Node[] | undefined,
+    Dispatch<SetStateAction<Node[] | undefined>>,
+  ]
 }
 
 const EditorContext = createContext<EditorContextType>({
@@ -39,6 +44,12 @@ const EditorContext = createContext<EditorContextType>({
   createKeyboard: async () => ({ data: null, error: null }),
   updateKeyboard: async () => ({ data: null, error: null }),
   deleteKeyboard: async () => ({ success: false, error: null }),
+  selectionState: [
+    undefined,
+    () => {
+      // No-op default setter
+    },
+  ],
 })
 
 // Custom hooks
@@ -47,12 +58,14 @@ export const useFetchKeyboard = () => useContext(EditorContext).fetchKeyboard
 export const useCreateKeyboard = () => useContext(EditorContext).createKeyboard
 export const useUpdateKeyboard = () => useContext(EditorContext).updateKeyboard
 export const useDeleteKeyboard = () => useContext(EditorContext).deleteKeyboard
+export const useSelection = () => useContext(EditorContext).selectionState
 
 type Props = { children: ReactNode }
 
 export const EditorProvider = ({ children }: Props) => {
   const { user } = useSession()
   const [keyboards, setKeyboards] = useState<Keyboard[]>([])
+  const selectionState = useState<Node[] | undefined>(undefined)
 
   const fetchKeyboards = useCallback(async () => {
     const { data, error } = await supabase
@@ -73,15 +86,6 @@ export const EditorProvider = ({ children }: Props) => {
       .select("*")
       .eq("id", id)
       .single()
-
-    if (data) {
-      setKeyboards(prev => {
-        const exists = prev.find(k => k.id === id)
-        return exists
-          ? prev.map(k => (k.id === id ? data : k))
-          : [...prev, data]
-      })
-    }
 
     return { data, error }
   }, [])
@@ -144,6 +148,7 @@ export const EditorProvider = ({ children }: Props) => {
         createKeyboard,
         updateKeyboard,
         deleteKeyboard,
+        selectionState,
       }}
     >
       {children}

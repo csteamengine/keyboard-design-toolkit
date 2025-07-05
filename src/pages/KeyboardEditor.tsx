@@ -27,15 +27,14 @@ import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
 import { useTheme } from "@mui/material/styles"
-import {
-  useFetchKeyboard,
-  useUpdateKeyboard,
-} from "../context/EditorContext.tsx"
+import { useFetchKeyboard, useSelection } from "../context/EditorContext.tsx"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
 import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
+import { useAppDispatch } from "../app/hooks.ts"
+import { setKeyboard } from "../app/editorSlice.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -55,10 +54,10 @@ const KeyboardEditor: React.FC = () => {
   const theme = useTheme()
   const ref = useRef(null)
   const { recordHistory, scheduleSave } = useContext(HistoryContext)
+  const dispatch = useAppDispatch()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
-  const [selectedNodes, setSelectedNodes] = useState<Node>([])
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<
     number | undefined
@@ -106,12 +105,16 @@ const KeyboardEditor: React.FC = () => {
 
   const onNodesChange = useCallback(
     changes => {
-      setNodes(nds => {
-        const updatedChanges = updateHelperLines(changes, nds)
-        return applyNodeChanges(updatedChanges, nds)
+      setNodes(prevNodes => {
+        const safeNodes = prevNodes.map(node => ({
+          ...node,
+        }))
+
+        const updatedChanges = updateHelperLines(changes, safeNodes)
+        return applyNodeChanges(updatedChanges, safeNodes)
       })
     },
-    [setNodes, scheduleSave, updateHelperLines],
+    [setNodes, updateHelperLines],
   )
 
   const onEdgesChange = useCallback(
@@ -142,6 +145,15 @@ const KeyboardEditor: React.FC = () => {
     scheduleSave()
   }, [scheduleSave])
 
+  function safeCloneNode(node) {
+    return {
+      ...node,
+      data: { ...node.data },
+      position: { ...node.position },
+      measured: node.measured ? { ...node.measured } : undefined,
+    }
+  }
+
   useEffect(() => {
     const load = async () => {
       if (!keyboardId) {
@@ -163,10 +175,15 @@ const KeyboardEditor: React.FC = () => {
 
         if (layout) {
           await reactFlowInstance.setViewport(layout.viewport)
-          setNodes(layout.nodes ?? [])
+
+          const nodesForReactFlow = layout.nodes?.map(safeCloneNode) ?? []
+          const nodesForRedux = layout.nodes?.map(safeCloneNode) ?? []
+
+          setNodes(nodesForReactFlow)
           setEdges(layout.edges ?? [])
           setName(data?.name ?? "")
           setDescription(data?.description ?? "")
+          dispatch(setKeyboard({ ...data, nodes: nodesForRedux }))
         }
       }
 
@@ -289,7 +306,7 @@ const KeyboardEditor: React.FC = () => {
             hideAttribution: true,
           }}
           onSelectionChange={({ nodes }) => {
-            setSelectedNodes(nodes)
+            // setSelection(nodes)
           }}
           nodeTypes={nodeTypes}
         >

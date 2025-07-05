@@ -8,34 +8,59 @@ import {
 } from "@mui/material"
 import {
   useEdgesState,
+  useNodes,
   useNodesState,
   useReactFlow,
   useStore,
 } from "@xyflow/react"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+
+const getSelectionCenter = (nodes: Node[]) => {
+  const count = nodes.length
+  const sum = nodes.reduce(
+    (acc, node) => {
+      acc.x += node.position.x
+      acc.y += node.position.y
+      return acc
+    },
+    { x: 0, y: 0 },
+  )
+  return {
+    x: sum.x / count,
+    y: sum.y / count,
+  }
+}
 
 export default function KeyDetailsForm() {
-  const { setNodes, setEdges, getNodes, getEdges } = useReactFlow()
+  // const [selection, _] = useSelection()
+  const nodes = useStore(state => state.nodes)
+  const { getNodes, setNodes, updateNodeData } = useReactFlow()
 
-  const selectedNodes = useStore(
-    state => state.nodes.filter(n => n.selected),
-    (a, b) => a.length === b.length && a.every((n, i) => n.id === b[i].id),
+  const currentNodes = getNodes().filter(n => n.selected)
+
+  const [firstNode, setFirstNode] = useState(
+    currentNodes ? (currentNodes[0] ?? null) : null,
   )
-
-  const selectedEdges = useStore(
-    state => state.edges.filter(e => e.selected),
-    (a, b) => a.length === b.length && a.every((e, i) => e.id === b[i].id),
-  )
-
-  const firstNode = selectedNodes[0] ?? null
   const [height, setHeight] = useState(firstNode?.data.heightU ?? 1)
   const [width, setWidth] = useState(firstNode?.data.widthU ?? 1)
+  const [rotation, setRotation] = useState(firstNode?.data.rotation ?? 0)
+
+  useEffect(() => {
+    const selected = nodes.filter((n: Node) => n.selected)
+
+    const realNode = getNodes().find(n => n.id === selected[0]?.id)
+
+    setFirstNode(realNode)
+    setHeight(realNode?.height / 60)
+    setWidth(realNode?.width / 60)
+    setRotation(realNode?.data.rotation ?? 0)
+  }, [nodes])
 
   const handleLabelChange = e => {
     const label = e.target.value
     setNodes(nodes =>
       nodes.map(n =>
-        selectedNodes.some(s => s.id === n.id)
+        currentNodes.some(s => s.id === n.id)
           ? { ...n, data: { ...n.data, label } }
           : n,
       ),
@@ -46,9 +71,11 @@ export default function KeyDetailsForm() {
 
   const handleRotationChange = useCallback(
     (_, newValue) => {
+      const rotationCenter = getSelectionCenter(currentNodes)
+      // updateNodeData(nodes =>)
       setNodes(nodes =>
         nodes.map(n =>
-          selectedNodes.some(s => s.id === n.id)
+          currentNodes.some(s => s.id === n.id)
             ? {
                 ...n,
                 data: { ...n.data, rotation: newValue },
@@ -57,7 +84,7 @@ export default function KeyDetailsForm() {
         ),
       )
     },
-    [selectedNodes, setNodes],
+    [currentNodes, setNodes],
   )
 
   const handleHeightChange = useCallback(
@@ -65,10 +92,10 @@ export default function KeyDetailsForm() {
       setHeight(value)
       setNodes(nodes => {
         const toReturn = nodes.map(n =>
-          selectedNodes.some(s => s.id === n.id)
+          currentNodes.some(s => s.id === n.id)
             ? {
                 ...n,
-                height: `${value * 60}px`, // Convert U to pixels
+                height: value * 60, // Convert U to pixels
                 data: {
                   ...n.data,
                   heightU: value, // Convert U to pixels
@@ -79,18 +106,17 @@ export default function KeyDetailsForm() {
         return toReturn
       })
     },
-    [selectedNodes, setNodes],
+    [currentNodes, setNodes],
   )
 
   const handleWidthChange = useCallback(
     (value: number) => {
-      setWidth(value)
       setNodes(nodes => {
         const toReturn = nodes.map(n =>
-          selectedNodes.some(s => s.id === n.id)
+          currentNodes.some(s => s.id === n.id)
             ? {
                 ...n,
-                width: `${value * 60}px`, // Convert U to pixels
+                width: value * 60, // Convert U to pixels
                 data: {
                   ...n.data,
                   widthU: value, // Convert U to pixels
@@ -98,10 +124,13 @@ export default function KeyDetailsForm() {
               }
             : n,
         )
+
         return toReturn
       })
+
+      setWidth(value)
     },
-    [selectedNodes, setNodes],
+    [currentNodes, setNodes],
   )
 
   if (!firstNode) {
@@ -120,13 +149,13 @@ export default function KeyDetailsForm() {
         label="Label"
         fullWidth
         margin="normal"
-        defaultValue={firstNode.data.label}
+        value={firstNode.data.label}
         onChange={handleLabelChange}
       />
 
       <Typography gutterBottom>Rotation</Typography>
       <Slider
-        value={firstNode.data.rotation as number}
+        value={rotation}
         onChange={handleRotationChange}
         min={0}
         max={345}
@@ -141,7 +170,7 @@ export default function KeyDetailsForm() {
             label="Width (U)"
             type="number"
             inputProps={{ step: 0.25, min: 1 }}
-            defaultValue={width}
+            value={width}
             onChange={e => handleWidthChange(parseFloat(e.target.value))}
             InputProps={{
               endAdornment: <InputAdornment position="end">U</InputAdornment>,
@@ -154,7 +183,7 @@ export default function KeyDetailsForm() {
             label="Height (U)"
             type="number"
             inputProps={{ step: 0.25, min: 1 }}
-            defaultValue={height}
+            value={height}
             onChange={e => handleHeightChange(parseFloat(e.target.value))}
             InputProps={{
               endAdornment: <InputAdornment position="end">U</InputAdornment>,
