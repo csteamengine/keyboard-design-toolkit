@@ -279,10 +279,7 @@ const KeyboardEditor: React.FC = () => {
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       }}
     >
-      <EditorSidebar
-        updateNodes={setNodes}
-        selectedNodes={nodes.filter((n: Node) => n.selected)}
-      />
+      <EditorSidebar />
       <div
         ref={reactFlowWrapper}
         style={{ flexGrow: 1, position: "relative" }}

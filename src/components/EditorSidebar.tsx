@@ -27,7 +27,7 @@ function TabPanel(props: TabPanelProps) {
   )
 }
 
-export default function EditorSidebar({ selectedNodes, updateNodes }) {
+export default function EditorSidebar() {
   const [open, setOpen] = useState(false)
   const [activePanel, setActivePanel] = useState("shapes") // "shapes" | "details" | "settings" | ""
 
@@ -171,10 +171,7 @@ export default function EditorSidebar({ selectedNodes, updateNodes }) {
           </TabPanel>
 
           <TabPanel value={activePanel} index="details">
-            <KeyDetailsForm
-              selectedNodes={selectedNodes}
-              updateNodes={updateNodes}
-            />
+            <KeyDetailsForm />
           </TabPanel>
           <TabPanel value={activePanel} index="settings">
             Tab Three Content

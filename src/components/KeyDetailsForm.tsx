@@ -15,13 +15,31 @@ import {
 } from "@xyflow/react"
 import { useCallback, useEffect, useState } from "react"
 
-export default function KeyDetailsForm({ selectedNodes, updateNodes }) {
+const getSelectionCenter = (nodes: Node[]) => {
+  const count = nodes.length
+  const sum = nodes.reduce(
+    (acc, node) => {
+      acc.x += node.position.x
+      acc.y += node.position.y
+      return acc
+    },
+    { x: 0, y: 0 },
+  )
+  return {
+    x: sum.x / count,
+    y: sum.y / count,
+  }
+}
+
+export default function KeyDetailsForm() {
   // const [selection, _] = useSelection()
   const nodes = useStore(state => state.nodes)
-  const { getNodes } = useReactFlow()
+  const { getNodes, setNodes, updateNodeData } = useReactFlow()
+
+  const currentNodes = getNodes().filter(n => n.selected)
 
   const [firstNode, setFirstNode] = useState(
-    selectedNodes ? (selectedNodes[0] ?? null) : null,
+    currentNodes ? (currentNodes[0] ?? null) : null,
   )
   const [height, setHeight] = useState(firstNode?.data.heightU ?? 1)
   const [width, setWidth] = useState(firstNode?.data.widthU ?? 1)
@@ -40,9 +58,9 @@ export default function KeyDetailsForm({ selectedNodes, updateNodes }) {
 
   const handleLabelChange = e => {
     const label = e.target.value
-    updateNodes(nodes =>
+    setNodes(nodes =>
       nodes.map(n =>
-        selectedNodes.some(s => s.id === n.id)
+        currentNodes.some(s => s.id === n.id)
           ? { ...n, data: { ...n.data, label } }
           : n,
       ),
@@ -53,9 +71,11 @@ export default function KeyDetailsForm({ selectedNodes, updateNodes }) {
 
   const handleRotationChange = useCallback(
     (_, newValue) => {
-      updateNodes(nodes =>
+      const rotationCenter = getSelectionCenter(currentNodes)
+      // updateNodeData(nodes =>)
+      setNodes(nodes =>
         nodes.map(n =>
-          selectedNodes.some(s => s.id === n.id)
+          currentNodes.some(s => s.id === n.id)
             ? {
                 ...n,
                 data: { ...n.data, rotation: newValue },
@@ -64,15 +84,15 @@ export default function KeyDetailsForm({ selectedNodes, updateNodes }) {
         ),
       )
     },
-    [selectedNodes, updateNodes],
+    [currentNodes, setNodes],
   )
 
   const handleHeightChange = useCallback(
     (value: number) => {
       setHeight(value)
-      updateNodes(nodes => {
+      setNodes(nodes => {
         const toReturn = nodes.map(n =>
-          selectedNodes.some(s => s.id === n.id)
+          currentNodes.some(s => s.id === n.id)
             ? {
                 ...n,
                 height: value * 60, // Convert U to pixels
@@ -86,14 +106,14 @@ export default function KeyDetailsForm({ selectedNodes, updateNodes }) {
         return toReturn
       })
     },
-    [selectedNodes, updateNodes],
+    [currentNodes, setNodes],
   )
 
   const handleWidthChange = useCallback(
     (value: number) => {
-      updateNodes(nodes => {
+      setNodes(nodes => {
         const toReturn = nodes.map(n =>
-          selectedNodes.some(s => s.id === n.id)
+          currentNodes.some(s => s.id === n.id)
             ? {
                 ...n,
                 width: value * 60, // Convert U to pixels
@@ -110,7 +130,7 @@ export default function KeyDetailsForm({ selectedNodes, updateNodes }) {
 
       setWidth(value)
     },
-    [selectedNodes, updateNodes],
+    [currentNodes, setNodes],
   )
 
   if (!firstNode) {
