@@ -183,7 +183,7 @@ const KeyboardEditor: React.FC = () => {
           setEdges(layout.edges ?? [])
           setName(data?.name ?? "")
           setDescription(data?.description ?? "")
-          dispatch(setKeyboard({ ...data, nodes: nodesForRedux }))
+          dispatch(setKeyboard(data))
         }
       }
 

@@ -154,18 +154,45 @@ export default function KeyDetailsForm() {
       />
 
       <Typography gutterBottom>Rotation</Typography>
-      <Slider
-        value={rotation}
-        onChange={handleRotationChange}
-        min={0}
-        max={345}
-        step={15}
-        valueLabelDisplay="auto"
-        marks
-      />
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs style={{ flexGrow: 1 }}>
+          <Slider
+            disabled
+            value={rotation}
+            onChange={handleRotationChange}
+            min={0}
+            max={345}
+            step={15}
+            valueLabelDisplay="auto"
+            marks
+            fullWidth
+          />
+        </Grid>
+        <Grid item style={{ width: 80 }}>
+          <TextField
+            disabled
+            type="number"
+            label="°"
+            value={rotation}
+            onChange={e =>
+              handleRotationChange(
+                null,
+                Math.min(345, Math.max(0, Number(e.target.value))),
+              )
+            }
+            inputProps={{
+              min: 0,
+              max: 345,
+              step: 15,
+            }}
+            size="small"
+            fullWidth
+          />
+        </Grid>
+      </Grid>
 
-      <Grid container spacing={2} mt={1}>
-        <Grid xs={6}>
+      <Grid container spacing={2} mt={1} width="100%">
+        <Grid xs={6} width="100%">
           <TextField
             label="Width (U)"
             type="number"
@@ -178,7 +205,9 @@ export default function KeyDetailsForm() {
             fullWidth
           />
         </Grid>
-        <Grid item xs={6}>
+      </Grid>
+      <Grid container spacing={2} mt={1} width="100%">
+        <Grid item xs={6} width="100%">
           <TextField
             label="Height (U)"
             type="number"
