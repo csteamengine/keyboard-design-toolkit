@@ -1,5 +1,5 @@
 import { Box, Button, Grid, TextField, Typography } from "@mui/material"
-import { useContext, useEffect, useState } from "react"
+import { useContext, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts"
 import { selectKeyboard, setKeyboard } from "../app/editorSlice.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
@@ -14,9 +14,9 @@ export default function KeyboardSettingsForm() {
   const { scheduleSave, saveFlow } = useContext(HistoryContext)
   const keyboard = useAppSelector(selectKeyboard)
   const dispatch = useAppDispatch()
-  const [name, setName] = useState(keyboard.name ?? "")
-  const [description, setDescription] = useState(keyboard.description ?? "")
-  const [notes, setNotes] = useState(keyboard.settings?.notes ?? "")
+  const [name, setName] = useState(keyboard?.name ?? "")
+  const [description, setDescription] = useState(keyboard?.description ?? "")
+  const [notes, setNotes] = useState(keyboard?.settings?.notes ?? "")
 
   const handleChange =
     (field: keyof KeyboardMetadata) =>
@@ -50,6 +50,23 @@ export default function KeyboardSettingsForm() {
 
   const handleSave = () => {
     void saveFlow()
+  }
+
+  if (!keyboard) {
+    return (
+      <Box sx={{ justifyContent: "center", textAlign: "center", mt: 4 }}>
+        <h3>Not Logged In</h3>
+        <Typography>Please log in to access keyboard settings.</Typography>
+        <Button sx={{ mt: 2 }} variant="contained" color="primary">
+          <a
+            href="/auth/login"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            Log In
+          </a>
+        </Button>
+      </Box>
+    )
   }
 
   return (
