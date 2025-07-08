@@ -6,6 +6,8 @@ import { type Edge, type Node, useReactFlow } from "@xyflow/react"
 import { useUpdateKeyboard } from "./EditorContext.tsx"
 import { useParams } from "react-router-dom"
 import { enqueueSnackbar } from "notistack"
+import { useAppSelector } from "../app/hooks.ts"
+import { selectKeyboard } from "../app/editorSlice.tsx"
 
 type HistoryContextType = {
   undo: () => void
@@ -51,6 +53,7 @@ export function HistoryContextProvider({
   children,
 }: HistoryContextProviderProps) {
   const { setNodes, setEdges, getNodes, getEdges } = useReactFlow()
+  const keyboard = useAppSelector(selectKeyboard)
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const historyRef = useRef<FlowSnapshot[]>([])
   const redoStackRef = useRef<FlowSnapshot[]>([])
@@ -66,7 +69,10 @@ export function HistoryContextProvider({
 
     if (!keyboardId) return
     const { error } = await updateKeyboard(keyboardId, {
+      name: keyboard.name,
+      description: keyboard.description,
       reactflow: reactFlowInstance.toObject(),
+      settings: keyboard?.settings,
     })
 
     if (error) {

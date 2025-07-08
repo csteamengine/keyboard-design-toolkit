@@ -5,6 +5,7 @@ import CategoryIcon from "@mui/icons-material/Category"
 import TuneIcon from "@mui/icons-material/Tune"
 import SettingsIcon from "@mui/icons-material/Settings"
 import KeyDetailsForm from "./KeyDetailsForm.tsx"
+import KeyboardSettingsForm from "./KeyboardSettingsForm.tsx"
 
 const unitSize = 60 // px per 1u
 
@@ -174,7 +175,7 @@ export default function EditorSidebar() {
             <KeyDetailsForm />
           </TabPanel>
           <TabPanel value={activePanel} index="settings">
-            Tab Three Content
+            <KeyboardSettingsForm />
           </TabPanel>
         </Box>
 
