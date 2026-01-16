@@ -6,7 +6,6 @@ import SignUpPage from "../pages/auth/SignUpPage.tsx"
 import Layout from "../components/Layout.tsx"
 import Keyboards from "../pages/Keyboards.tsx"
 import KeyboardEditor from "../pages/KeyboardEditor.tsx"
-import PublicProtectedRoute from "./PublicProtectedRoute.tsx"
 import Providers from "../Providers.tsx"
 
 const router = createBrowserRouter([

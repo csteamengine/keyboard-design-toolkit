@@ -16,7 +16,8 @@ export const editorSlice = createSlice({
   initialState,
   reducers: {
     setKeyboard(state, action: PayloadAction<Keyboard>) {
-      state.keyboard = action.payload
+      // Cast to any to avoid Immer readonly issues with ReactFlow types
+      state.keyboard = action.payload as any
     },
     clearKeyboard(state) {
       state.keyboard = null

@@ -65,7 +65,7 @@ const Keyboards: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this keyboard?"))
       return
 
-    const { success, error } = await deleteKeyboard(keyboardId)
+    const { error } = await deleteKeyboard(keyboardId)
 
     if (error) {
       console.error("Error deleting keyboard:", error)
@@ -170,11 +170,9 @@ const Keyboards: React.FC = () => {
       <CssBaseline />
       <Paper sx={{ flexGrow: 1, flexDirection: "row", m: 3 }}>
         <DataGrid
-          searchable
           rows={keyboards}
           loading={loading}
           columns={columns}
-          showToolbar={true}
           initialState={{ pagination: { paginationModel } }}
           pageSizeOptions={[10, 20]}
           checkboxSelection
@@ -182,11 +180,9 @@ const Keyboards: React.FC = () => {
           disableColumnFilter={true}
           disableColumnSelector={true}
           processRowUpdate={handleRowUpdate}
-          experimentalFeatures={{ newEditingApi: true }}
           onProcessRowUpdateError={error => {
             console.error("Row update error", error)
           }}
-          flex={1}
         />
       </Paper>
       <Box display="flex" justifyContent="center" mt={2}>

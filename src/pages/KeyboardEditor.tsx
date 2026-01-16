@@ -1,7 +1,5 @@
-import React, { useContext } from "react"
-import { useRef } from "react"
-import { useCallback, useEffect, useState } from "react"
-import type { NodeChange } from "@xyflow/react"
+import React, { useContext, useRef, useCallback, useEffect, useState } from "react"
+import type { NodeChange, EdgeChange, Node, Edge, Connection, Viewport } from "@xyflow/react"
 import {
   ReactFlow,
   useNodesState,
@@ -10,8 +8,6 @@ import {
   Background,
   Controls,
   MiniMap,
-  type Node,
-  type Connection,
   applyNodeChanges,
   applyEdgeChanges,
   useReactFlow,
@@ -27,102 +23,148 @@ import ContextMenu from "../components/ContextMenu.tsx"
 import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
 import { useTheme } from "@mui/material/styles"
-import { useFetchKeyboard, useSelection } from "../context/EditorContext.tsx"
+import { useFetchKeyboard } from "../context/EditorContext.tsx"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
 import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
+import GroupRotationHandle from "../components/GroupRotationHandle.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
 import { useAppDispatch } from "../app/hooks.ts"
 import { setKeyboard } from "../app/editorSlice.tsx"
-
-const unitSize = 60 // px per 1u
+import { UNIT_SIZE, SNAP_SIZE, FINE_SNAP_SIZE } from "../constants/editor"
 
 const nodeTypes = {
   keyboardKey: KeyboardKey,
 }
 
+type MenuState = {
+  id: string
+  top?: number
+  left?: number
+  right?: number
+  bottom?: number
+} | null
+
 const KeyboardEditor: React.FC = () => {
-  const reactFlowWrapper = useRef(null)
+  const reactFlowWrapper = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const fetchKeyboard = useFetchKeyboard()
   const { keyboardId } = useParams<{ keyboardId: string }>()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<PostgrestError | null>(null)
-  const [menu, setMenu] = useState(null)
+  const [menu, setMenu] = useState<MenuState>(null)
   const reactFlowInstance = useReactFlow()
   const { screenToFlowPosition } = useReactFlow()
   const theme = useTheme()
-  const ref = useRef(null)
   const { recordHistory, scheduleSave } = useContext(HistoryContext)
   const dispatch = useAppDispatch()
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
 
-  const [helperLineHorizontal, setHelperLineHorizontal] = useState<
-    number | undefined
-  >(undefined)
-  const [helperLineVertical, setHelperLineVertical] = useState<
-    number | undefined
-  >(undefined)
+  const [helperLineHorizontal, setHelperLineHorizontal] = useState<number | undefined>(undefined)
+  const [helperLineVertical, setHelperLineVertical] = useState<number | undefined>(undefined)
 
-  const [nodes, setNodes] = useNodesState([])
-  const [edges, setEdges] = useEdgesState([])
+  const [nodes, setNodes] = useNodesState<Node>([])
+  const [edges, setEdges] = useEdgesState<Edge>([])
 
-  // === Change Handlers ===
+  // Track Alt key for fine snap mode
+  const [isAltPressed, setIsAltPressed] = useState(false)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Alt") setIsAltPressed(true)
+    }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Alt") setIsAltPressed(false)
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    window.addEventListener("keyup", handleKeyUp)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keyup", handleKeyUp)
+    }
+  }, [])
+
+  const currentSnapSize = isAltPressed ? FINE_SNAP_SIZE : SNAP_SIZE
+
   const updateHelperLines = useCallback(
-    (changes: NodeChange[], nodes: Node[]) => {
-      // reset the helper lines (clear existing lines, if any)
+    (changes: NodeChange[], currentNodes: Node[]) => {
       setHelperLineHorizontal(undefined)
       setHelperLineVertical(undefined)
 
-      // this will be true if it's a single node being dragged
-      // inside we calculate the helper lines and snap position for the position where the node is being moved to
-      if (
-        changes.length === 1 &&
-        changes[0].type === "position" &&
-        changes[0].dragging &&
-        changes[0].position
-      ) {
-        const helperLines = getHelperLines(changes[0], nodes)
+      // Find all position changes that are dragging
+      const positionChanges = changes.filter(
+        (c): c is NodeChange & { type: "position"; position: { x: number; y: number }; dragging: true } =>
+          c.type === "position" && c.dragging === true && c.position !== undefined
+      )
 
-        // if we have a helper line, we snap the node to the helper line position
-        // this is being done by manipulating the node position inside the change object
-        changes[0].position.x =
-          helperLines.snapPosition.x ?? changes[0].position.x
-        changes[0].position.y =
-          helperLines.snapPosition.y ?? changes[0].position.y
+      if (positionChanges.length === 0) {
+        return changes
+      }
 
-        // if helper lines are returned, we set them so that they can be displayed
-        setHelperLineHorizontal(helperLines.horizontal)
-        setHelperLineVertical(helperLines.vertical)
+      const snapSize = currentSnapSize
+
+      if (positionChanges.length === 1) {
+        // Single node drag - apply helper lines snapping first, then grid snap
+        const change = positionChanges[0]
+        const helperLines = getHelperLines(change, currentNodes)
+
+        // Apply helper line snap if available
+        if (helperLines.snapPosition.x !== undefined) {
+          change.position.x = helperLines.snapPosition.x
+          setHelperLineVertical(helperLines.vertical)
+        } else {
+          // Otherwise apply grid snap
+          change.position.x = Math.round(change.position.x / snapSize) * snapSize
+        }
+
+        if (helperLines.snapPosition.y !== undefined) {
+          change.position.y = helperLines.snapPosition.y
+          setHelperLineHorizontal(helperLines.horizontal)
+        } else {
+          // Otherwise apply grid snap
+          change.position.y = Math.round(change.position.y / snapSize) * snapSize
+        }
+      } else {
+        // Multi-select drag - preserve relative positions by applying uniform snap
+        // Use the first node as anchor and apply the same grid snap to all
+        const anchor = positionChanges[0]
+
+        // Calculate how much the anchor would need to move to snap to grid
+        const snappedX = Math.round(anchor.position.x / snapSize) * snapSize
+        const snappedY = Math.round(anchor.position.y / snapSize) * snapSize
+        const deltaX = snappedX - anchor.position.x
+        const deltaY = snappedY - anchor.position.y
+
+        // Apply the same delta to all selected nodes to preserve relative positions
+        for (const change of positionChanges) {
+          change.position.x += deltaX
+          change.position.y += deltaY
+        }
       }
 
       return changes
     },
-    [],
+    [currentSnapSize]
   )
 
   const onNodesChange = useCallback(
-    changes => {
+    (changes: NodeChange[]) => {
       setNodes(prevNodes => {
-        const safeNodes = prevNodes.map(node => ({
-          ...node,
-        }))
-
-        const updatedChanges = updateHelperLines(changes, safeNodes)
-        return applyNodeChanges(updatedChanges, safeNodes)
+        const updatedChanges = updateHelperLines(changes, prevNodes)
+        return applyNodeChanges(updatedChanges, prevNodes)
       })
     },
-    [setNodes, updateHelperLines],
+    [setNodes, updateHelperLines]
   )
 
   const onEdgesChange = useCallback(
-    changes => {
+    (changes: EdgeChange[]) => {
       setEdges(eds => applyEdgeChanges(changes, eds))
       scheduleSave()
     },
-    [setEdges, scheduleSave],
+    [setEdges, scheduleSave]
   )
 
   const onConnect = useCallback(
@@ -134,7 +176,7 @@ const KeyboardEditor: React.FC = () => {
         return updated
       })
     },
-    [setEdges, scheduleSave, recordHistory],
+    [setEdges, scheduleSave, recordHistory]
   )
 
   const onNodeDragStart = useCallback(() => {
@@ -145,7 +187,7 @@ const KeyboardEditor: React.FC = () => {
     scheduleSave()
   }, [scheduleSave])
 
-  function safeCloneNode(node) {
+  function safeCloneNode(node: Node): Node {
     return {
       ...node,
       data: { ...node.data },
@@ -155,11 +197,12 @@ const KeyboardEditor: React.FC = () => {
   }
 
   useEffect(() => {
+    let cancelled = false
+
     const load = async () => {
       if (!keyboardId) {
         setNodes([])
         setEdges([])
-        setName("New Keyboard")
         setLoading(false)
         return
       }
@@ -167,22 +210,22 @@ const KeyboardEditor: React.FC = () => {
 
       const { data, error } = await fetchKeyboard(keyboardId)
 
+      if (cancelled) return
+
       if (error) {
         setError(error)
         console.error("Supabase error:", error)
-      } else {
-        const layout: KeyboardLayout = data?.reactflow as KeyboardLayout
+      } else if (data) {
+        const layout = data.reactflow as KeyboardLayout | undefined
 
         if (layout) {
-          await reactFlowInstance.setViewport(layout.viewport)
+          if (layout.viewport) {
+            void reactFlowInstance.setViewport(layout.viewport as Viewport)
+          }
 
           const nodesForReactFlow = layout.nodes?.map(safeCloneNode) ?? []
-          const nodesForRedux = layout.nodes?.map(safeCloneNode) ?? []
-
           setNodes(nodesForReactFlow)
           setEdges(layout.edges ?? [])
-          setName(data?.name ?? "")
-          setDescription(data?.description ?? "")
           dispatch(setKeyboard(data))
         }
       }
@@ -191,29 +234,33 @@ const KeyboardEditor: React.FC = () => {
     }
 
     void load()
-  }, [keyboardId, setEdges, setNodes])
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyboardId])
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault()
 
-      const data = JSON.parse(
-        event.dataTransfer.getData("application/reactflow"),
-      )
+      const transferData = event.dataTransfer.getData("application/reactflow")
+      if (!transferData) return
 
+      const data = JSON.parse(transferData)
       if (!data || data.type !== "keyboardKey") return
 
-      const stepSize = unitSize / 4 // 1u is 60px, so 1/4 of that is 15px
-
-      const keyWidth = data.widthU * unitSize
-      const keyHeight = data.heightU * unitSize
+      const keyWidth = data.widthU * UNIT_SIZE
+      const keyHeight = data.heightU * UNIT_SIZE
 
       const rawPosition = screenToFlowPosition({
         x: event.clientX - keyWidth / 2,
         y: event.clientY - keyHeight / 2,
       })
 
-      const snapToGrid = (val: number) => Math.round(val / stepSize) * stepSize
+      const snapSize = event.altKey ? FINE_SNAP_SIZE : SNAP_SIZE
+      const snapToGrid = (val: number) => Math.round(val / snapSize) * snapSize
 
       const snappedPosition = {
         x: snapToGrid(rawPosition.x),
@@ -233,9 +280,9 @@ const KeyboardEditor: React.FC = () => {
         height: keyHeight,
       }
 
-      setNodes(nds => nds.concat(newNode))
+      setNodes(nds => [...nds, newNode])
     },
-    [screenToFlowPosition, setNodes],
+    [screenToFlowPosition, setNodes]
   )
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -244,34 +291,29 @@ const KeyboardEditor: React.FC = () => {
   }, [])
 
   const onNodeContextMenu = useCallback(
-    (event, node) => {
-      // Prevent native context menu from showing
+    (event: React.MouseEvent, node: Node) => {
       event.preventDefault()
 
-      // Calculate position of the context menu. We want to make sure it
-      // doesn't get positioned off-screen.
+      if (!ref.current) return
       const pane = ref.current.getBoundingClientRect()
       setMenu({
         id: node.id,
-        top: event.clientY < pane.height - 200 && event.clientY,
-        left: event.clientX < pane.width - 200 && event.clientX,
-        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
-        bottom:
-          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        top: event.clientY < pane.height - 200 ? event.clientY : undefined,
+        left: event.clientX < pane.width - 200 ? event.clientX : undefined,
+        right: event.clientX >= pane.width - 200 ? pane.width - event.clientX : undefined,
+        bottom: event.clientY >= pane.height - 200 ? pane.height - event.clientY : undefined,
       })
     },
-    [setMenu],
+    []
   )
 
-  // Close the context menu if it's open whenever the window is clicked.
-  const onPaneClick = useCallback(() => setMenu(null), [setMenu])
+  const onPaneClick = useCallback(() => setMenu(null), [])
 
   if (loading) return <LoadingPage />
   if (error) return <ErrorPage />
 
   return (
     <div
-      className="tester"
       style={{
         display: "flex",
         flexGrow: 1,
@@ -287,8 +329,8 @@ const KeyboardEditor: React.FC = () => {
         onDragOver={onDragOver}
       >
         <ReactFlow
-          snapGrid={[unitSize / 4, unitSize / 4]}
-          snapToGrid={true}
+          snapGrid={[currentSnapSize, currentSnapSize]}
+          snapToGrid={false}
           ref={ref}
           nodes={nodes}
           edges={edges}
@@ -305,18 +347,16 @@ const KeyboardEditor: React.FC = () => {
           proOptions={{
             hideAttribution: true,
           }}
-          onSelectionChange={({ nodes }) => {
-            // setSelection(nodes)
-          }}
           nodeTypes={nodeTypes}
         >
           <MiniMap pannable={true} />
           <Controls />
-          <Background gap={unitSize / 4} />
+          <Background gap={SNAP_SIZE} />
           <HelperLines
             horizontal={helperLineHorizontal}
             vertical={helperLineVertical}
           />
+          <GroupRotationHandle />
           {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
         </ReactFlow>
       </div>

@@ -1,271 +1,328 @@
-/* xyflow theme files. Delete these to start from our base */
+/* Keyboard Design Toolkit - Global Styles */
 
+/* CSS Variables - Modern Slate/Indigo Color Palette */
+:root {
+  /* Primary palette - Indigo */
+  --color-primary: #4f46e5;
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4338ca;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+
+  /* Neutral palette - Slate */
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
+  --color-hover-bg: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-dark: #cbd5e1;
+  --color-disabled: #94a3b8;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+
+  /* Accent colors */
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+
+  /* Selection/Focus colors */
+  --color-selection: #818cf8;
+  --color-focus-ring: rgba(79, 70, 229, 0.3);
+}
+
+/* ReactFlow Theme */
 .react-flow {
-    --xy-background-color: #f7f9fb;
-    /* Custom Variables */
-    --xy-theme-selected: #f57dbd;
-    --xy-theme-hover: #c5c5c5;
-    --xy-theme-edge-hover: black;
-    --xy-theme-color-focus: #e8e8e8;
+  --xy-background-color: #f8fafc;
+  --xy-theme-selected: var(--color-primary-light);
+  --xy-theme-hover: var(--color-border-dark);
+  --xy-theme-edge-hover: var(--color-text-primary);
+  --xy-theme-color-focus: var(--color-primary-50);
 
-    /* Built-in Variables see https://reactflow.dev/learn/customization/theming */
-    --xy-node-border-default: 1px solid #ededed;
+  --xy-node-border-default: 1px solid var(--color-border);
+  --xy-node-boxshadow-default: 0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  --xy-node-border-radius-default: 6px;
+  --xy-node-background-color-default: var(--color-surface);
 
-    --xy-node-boxshadow-default:
-            0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
-            0px 0.51px 1.01px 0px #0000001a;
+  --xy-handle-background-color-default: var(--color-surface);
+  --xy-handle-border-color-default: var(--color-border-dark);
 
-    --xy-node-border-radius-default: 8px;
-
-    --xy-handle-background-color-default: #ffffff;
-    --xy-handle-border-color-default: #aaaaaa;
-
-    --xy-edge-label-color-default: #505050;
+  --xy-edge-label-color-default: var(--color-text-secondary);
 }
 
 .react-flow.dark {
-    --xy-node-boxshadow-default:
-            0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.05),
-                /* light shadow */ 0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.13),
-                /* medium shadow */ 0px 0.51px 1.01px 0px rgba(255, 255, 255, 0.2); /* smallest shadow */
-    --xy-theme-color-focus: #535353;
+  --xy-background-color: #1e293b;
+  --xy-node-boxshadow-default: 0 1px 3px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  --xy-theme-color-focus: #334155;
 }
 
-/* Customizing Default Theming */
-
+/* ReactFlow Node Styling */
 .react-flow__node {
-    box-shadow: var(--xy-node-boxshadow-default);
-    border-radius: var(--xy-node-border-radius-default);
-    background-color: var(--xy-node-background-color-default);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    /*padding: 10px;*/
-    font-size: 12px;
-    flex-direction: column;
-    /*border: var(--xy-node-border-default);*/
-    border: 1px solid black;
-    color: var(--xy-node-color, var(--xy-node-color-default));
+  box-shadow: none;
+  border-radius: var(--xy-node-border-radius-default);
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  flex-direction: column;
+  border: none;
+  color: var(--xy-node-color, var(--color-text-primary));
+  overflow: visible !important; /* Prevent clipping of rotated keys */
 }
 
 .react-flow__node.selectable:focus {
-    box-shadow: 0px 0px 0px 4px var(--xy-theme-color-focus);
-    border-color: #d9d9d9;
+  box-shadow: none;
 }
 
 .react-flow__node.selectable:focus:active {
-    box-shadow: var(--xy-node-boxshadow-default);
+  box-shadow: none;
 }
 
 .react-flow__node.selectable:hover,
 .react-flow__node.draggable:hover {
-    border-color: var(--xy-theme-hover);
+  /* Hover handled by inner key component */
 }
 
 .react-flow__node.selectable.selected {
-    border-color: var(--xy-theme-selected);
-    box-shadow: var(--xy-node-boxshadow-default);
+  box-shadow: none;
 }
 
 .react-flow__node-group {
-    background-color: rgba(207, 182, 255, 0.4);
-    border-color: #9e86ed;
+  background-color: rgba(79, 70, 229, 0.1);
+  border: 1px dashed var(--color-primary-light);
 }
 
 .react-flow__edge.selectable:hover .react-flow__edge-path,
 .react-flow__edge.selectable.selected .react-flow__edge-path {
-    stroke: var(--xy-theme-edge-hover);
+  stroke: var(--xy-theme-edge-hover);
 }
 
 .react-flow__handle {
-    background-color: var(--xy-handle-background-color-default);
+  background-color: var(--xy-handle-background-color-default);
 }
 
 .react-flow__handle.connectionindicator:hover {
-    pointer-events: all;
-    border-color: var(--xy-theme-edge-hover);
-    background-color: white;
+  pointer-events: all;
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
 }
 
 .react-flow__handle.connectionindicator:focus,
 .react-flow__handle.connectingfrom,
 .react-flow__handle.connectingto {
-    border-color: var(--xy-theme-edge-hover);
+  border-color: var(--color-primary);
 }
 
 .react-flow__node-resizer {
-    border-radius: 0;
-    border: none;
+  border-radius: 0;
+  border: none;
 }
 
 .react-flow__resize-control.handle {
-    background-color: #ffffff;
-    border-color: #9e86ed;
-    border-radius: 0;
-    width: 5px;
-    height: 5px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  border-radius: 2px;
+  width: 8px;
+  height: 8px;
 }
 
-/*
-  Custom Example CSS  - This CSS is to improve the example experience.
-  You can remove it if you want to use the default styles.
-
-  New Theme Classes:
-    .xy-theme__button   - Styles for buttons.
-    .xy-theme__input    - Styles for text inputs.
-    .xy-theme__checkbox - Styles for checkboxes.
-    .xy-theme__select   - Styles for dropdown selects.
-    .xy-theme__label    - Styles for labels.
-
-  Use these classes to apply consistent theming across your components.
-*/
-
-:root {
-    --color-primary: #ff0073;
-    --color-background: #fefefe;
-    --color-hover-bg: #f6f6f6;
-    --color-disabled: #76797e;
+/* MiniMap Styling */
+.react-flow__minimap {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
 }
 
+/* Controls Styling */
+.react-flow__controls {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--color-hover-bg);
+}
+
+/* Custom Theme Classes */
 .xy-theme__button-group {
-    display: flex;
-    align-items: center;
-
-    .xy-theme__button:first-child {
-        border-radius: 100px 0 0 100px;
-    }
-
-    .xy-theme__button:last-child {
-        border-radius: 0 100px 100px 0;
-        margin: 0;
-    }
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
-/* Custom Button Styling */
+.xy-theme__button-group .xy-theme__button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.xy-theme__button-group .xy-theme__button:last-child {
+  border-radius: 0 6px 6px 0;
+  margin: 0;
+}
+
 .xy-theme__button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 2.5rem;
-    padding: 0 1rem;
-    border-radius: 100px;
-    border: 1px solid var(--color-primary);
-    background-color: var(--color-background);
-    color: var(--color-primary);
-    transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease;
-    box-shadow: var(--xy-node-boxshadow-default);
-    cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  padding: 0 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
 .xy-theme__button.active {
-    background-color: var(--color-primary);
-    color: white;
-    border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 .xy-theme__button.active:hover,
 .xy-theme__button.active:active {
-    background-color: var(--color-primary);
-    opacity: 0.9;
+  background-color: var(--color-primary-dark);
 }
 
 .xy-theme__button:hover {
-    background-color: var(--xy-controls-button-background-color-hover-default);
+  background-color: var(--color-primary-50);
 }
 
 .xy-theme__button:active {
-    background-color: var(--color-hover-bg);
+  background-color: var(--color-primary-100);
 }
 
 .xy-theme__button:disabled {
-    color: var(--color-disabled);
-    opacity: 0.8;
-    cursor: not-allowed;
-    border: 1px solid var(--color-disabled);
+  color: var(--color-disabled);
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: var(--color-disabled);
 }
 
 .xy-theme__button > span {
-    margin-right: 0.2rem;
+  margin-right: 0.25rem;
 }
 
-/* Add gap between adjacent buttons */
 .xy-theme__button + .xy-theme__button {
-    margin-left: 0.3rem;
+  margin-left: 0.5rem;
 }
 
-/* Example Input Styling */
 .xy-theme__input {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--color-primary);
-    border-radius: 7px;
-    background-color: var(--color-background);
-    transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease;
-    font-size: 1rem;
-    color: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  transition: all 0.15s ease;
+}
+
+.xy-theme__input:hover {
+  border-color: var(--color-border-dark);
 }
 
 .xy-theme__input:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(255, 0, 115, 0.3);
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
-/* Specific Checkbox Styling */
 .xy-theme__checkbox {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 7px;
-    border: 2px solid var(--color-primary);
-    background-color: var(--color-background);
-    transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease;
-    cursor: pointer;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 0.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 4px;
+  border: 2px solid var(--color-border-dark);
+  background-color: var(--color-surface);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5rem;
 }
 
 .xy-theme__checkbox:checked {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .xy-theme__checkbox:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 0, 115, 0.3);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
-/* Dropdown Styling */
 .xy-theme__select {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--color-primary);
-    border-radius: 50px;
-    background-color: var(--color-background);
-    transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease;
-    font-size: 1rem;
-    color: inherit;
-    margin-right: 0.5rem;
-    box-shadow: var(--xy-node-boxshadow-default);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.xy-theme__select:hover {
+  border-color: var(--color-border-dark);
 }
 
 .xy-theme__select:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(255, 0, 115, 0.3);
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .xy-theme__label {
-    margin-top: 10px;
-    margin-bottom: 3px;
-    display: inline-block;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+/* Utility Classes */
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-disabled);
 }
