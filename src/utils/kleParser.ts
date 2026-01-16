@@ -118,15 +118,10 @@ export function parseKLE(kleData: KLERow[]): Node[] {
       }
     }
 
-    // At end of row, move to next row (only if no rotation is active)
-    if (state.rotation === 0) {
-      state.y += 1
-      state.x = 0
-    } else {
-      // With rotation, move relative to rotation origin
-      state.y = state.rotationOriginY
-      state.x = state.rotationOriginX
-    }
+    // At end of row, move to next row
+    // Per KLE spec: y increments by 1, x resets to rx (or 0 if no rotation)
+    state.y += 1
+    state.x = state.rotation !== 0 ? state.rotationOriginX : 0
   }
 
   return nodes
@@ -136,31 +131,32 @@ export function parseKLE(kleData: KLERow[]): Node[] {
  * Apply KLE properties to parser state.
  */
 function applyProperties(state: ParserState, props: KLEProperties): void {
-  // Position offsets (cumulative)
+  // Rotation angle
+  if (props.r !== undefined) {
+    state.rotation = props.r
+  }
+
+  // Rotation origin - when either rx or ry is specified, BOTH x and y reset
+  // Per KLE spec: "When rx or ry is specified, x resets to rx and y resets to ry"
+  if (props.rx !== undefined || props.ry !== undefined) {
+    if (props.rx !== undefined) {
+      state.rotationOriginX = props.rx
+    }
+    if (props.ry !== undefined) {
+      state.rotationOriginY = props.ry
+    }
+    // Both x and y reset to rotation origin when either is specified
+    state.x = state.rotationOriginX
+    state.y = state.rotationOriginY
+  }
+
+  // Position offsets (cumulative) - applied AFTER rotation origin reset
   if (props.x !== undefined) state.x += props.x
   if (props.y !== undefined) state.y += props.y
 
   // Dimensions
   if (props.w !== undefined) state.width = props.w
   if (props.h !== undefined) state.height = props.h
-
-  // Rotation - when r is set, rx/ry default to current position if not specified
-  if (props.r !== undefined) {
-    state.rotation = props.r
-    if (props.rx === undefined && props.ry === undefined) {
-      // Keep existing rotation origin
-    }
-  }
-
-  // Rotation origin
-  if (props.rx !== undefined) {
-    state.rotationOriginX = props.rx
-    state.x = props.rx // rx also sets current x position
-  }
-  if (props.ry !== undefined) {
-    state.rotationOriginY = props.ry
-    state.y = props.ry // ry also sets current y position
-  }
 
   // Colors
   if (props.c !== undefined) state.color = props.c
@@ -178,30 +174,40 @@ function createNodeFromState(state: ParserState, label: string): Node {
   const actualWidth = widthU * UNIT_SIZE
   const actualHeight = heightU * UNIT_SIZE
 
-  // Calculate position in pixels
-  let posX = state.x * UNIT_SIZE
-  let posY = state.y * UNIT_SIZE
-
-  // If rotated, apply rotation transform around origin
-  if (rotation !== 0) {
-    const originXPx = state.rotationOriginX * UNIT_SIZE
-    const originYPx = state.rotationOriginY * UNIT_SIZE
-
-    const rotated = rotatePoint(posX, posY, originXPx, originYPx, rotation)
-    posX = rotated.x
-    posY = rotated.y
-
-    // Adjust for bounding box offset (center the key in its bounding box)
-    const bounds = getRotatedBoundingBox(actualWidth, actualHeight, rotation)
-    posX -= (bounds.width - actualWidth) / 2
-    posY -= (bounds.height - actualHeight) / 2
-  }
-
   // Calculate bounding box dimensions
   const bounds =
     rotation !== 0
       ? getRotatedBoundingBox(actualWidth, actualHeight, rotation)
       : { width: actualWidth, height: actualHeight }
+
+  // Calculate position in pixels
+  let posX: number
+  let posY: number
+
+  if (rotation !== 0) {
+    // For rotated keys in KLE:
+    // - (x, y) is the top-left of the key in the rotated coordinate system
+    // - We need to find where the key CENTER ends up in screen coordinates
+    // - Then position the bounding box so the key is centered in it
+
+    const originXPx = state.rotationOriginX * UNIT_SIZE
+    const originYPx = state.rotationOriginY * UNIT_SIZE
+
+    // Key center in local (rotated) coordinates
+    const localCenterX = state.x * UNIT_SIZE + actualWidth / 2
+    const localCenterY = state.y * UNIT_SIZE + actualHeight / 2
+
+    // Rotate the center point around the rotation origin to get screen position
+    const screenCenter = rotatePoint(localCenterX, localCenterY, originXPx, originYPx, rotation)
+
+    // Position bounding box so the key center is at the screen center
+    posX = screenCenter.x - bounds.width / 2
+    posY = screenCenter.y - bounds.height / 2
+  } else {
+    // Non-rotated keys: simple grid position
+    posX = state.x * UNIT_SIZE
+    posY = state.y * UNIT_SIZE
+  }
 
   // Parse the label - KLE uses \n for multiple legends
   const legends = label.split("\n").filter(l => l.trim() !== "")
