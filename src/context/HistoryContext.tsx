@@ -67,12 +67,12 @@ export function HistoryContextProvider({
       saveTimeoutRef.current = null
     }
 
-    if (!keyboardId) return
+    if (!keyboardId || !keyboard) return
     const { error } = await updateKeyboard(keyboardId, {
       name: keyboard.name,
       description: keyboard.description,
       reactflow: reactFlowInstance.toObject(),
-      settings: keyboard?.settings,
+      settings: keyboard.settings,
     })
 
     if (error) {
@@ -83,7 +83,7 @@ export function HistoryContextProvider({
         variant: "success",
       })
     }
-  }, [updateKeyboard, reactFlowInstance, keyboardId])
+  }, [updateKeyboard, reactFlowInstance, keyboardId, keyboard])
 
   const scheduleSave = useCallback(() => {
     if (saveTimeoutRef.current) {

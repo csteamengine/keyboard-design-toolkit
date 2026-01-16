@@ -135,12 +135,19 @@ export const KeyboardShortcutsProvider = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey
 
-      if (mod && e.key === "c") {
+      // Don't intercept shortcuts when focused on input elements
+      const target = e.target as HTMLElement
+      const isInputFocused =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+
+      if (mod && e.key === "c" && !isInputFocused) {
         e.preventDefault()
         handleCopy()
       }
 
-      if (mod && e.key === "v") {
+      if (mod && e.key === "v" && !isInputFocused) {
         e.preventDefault()
         handlePaste()
       }
@@ -162,7 +169,7 @@ export const KeyboardShortcutsProvider = ({
         setEdges(edges => edges.map(edge => ({ ...edge, selected: false })))
       }
 
-      if (mod && e.key === "a") {
+      if (mod && e.key === "a" && !isInputFocused) {
         e.preventDefault()
         // Select all nodes
         setNodes(nodes => nodes.map(node => ({ ...node, selected: true })))

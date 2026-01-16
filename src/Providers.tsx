@@ -5,11 +5,8 @@ import { EditorProvider } from "./context/EditorContext.tsx"
 import { Analytics } from "@vercel/analytics/react"
 import { KeyboardShortcutsProvider } from "./context/KeyboardShortcutsContext.tsx"
 import { HistoryContextProvider } from "./context/HistoryContext.tsx"
-import { useRef } from "react"
 
 const Providers = () => {
-  const reactFlowWrapper = useRef<HTMLDivElement>(null)
-
   return (
     <SessionProvider>
       <EditorProvider>

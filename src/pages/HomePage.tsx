@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react"
 import {
   Box,
-  Grid,
   Typography,
   Button,
   Card,
   CardContent,
   CardActions,
   Divider,
+  Grid,
 } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import UploadFileIcon from "@mui/icons-material/UploadFile"
 import SettingsInputComponentIcon from "@mui/icons-material/SettingsInputComponent"
-import EditIcon from "@mui/icons-material/Edit"
 import { useSession } from "../context/SessionContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
 import { useNavigate } from "react-router-dom"
@@ -86,7 +85,7 @@ const HomePage: React.FC = () => {
       <Divider sx={{ mb: 2 }} />
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={4} key={9999}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={9999}>
           <Card
             elevation={4}
             onClick={handleNewProject}
@@ -99,7 +98,7 @@ const HomePage: React.FC = () => {
               justifyContent: "center",
               alignItems: "center",
               "&:hover": {
-                backgroundColor: "#f5f5f5",
+                backgroundColor: "action.hover",
               },
             }}
           >
@@ -115,7 +114,7 @@ const HomePage: React.FC = () => {
         </Grid>
 
         {keyboards.map(project => (
-          <Grid item xs={12} sm={6} md={4} key={project.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project.id}>
             <Card
               elevation={4}
               onClick={() => navigate(`/keyboards/${project.id}`)}
@@ -128,7 +127,7 @@ const HomePage: React.FC = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 "&:hover": {
-                  backgroundColor: "#f5f5f5",
+                  backgroundColor: "action.hover",
                 },
               }}
             >
@@ -150,8 +149,8 @@ const HomePage: React.FC = () => {
       <Divider sx={{ mb: 2 }} />
 
       {/* Quick Actions */}
-      <Grid container spacing={2} mt={2}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mt: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card elevation={4}>
             <CardContent>
               <Typography variant="h6">Import Layout</Typography>
@@ -171,7 +170,7 @@ const HomePage: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card elevation={4}>
             <CardContent>
               <Typography variant="h6">Plate Generator</Typography>
