@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { useMemo } from "react"
 import { createContext, useCallback } from "react"
 import { type Edge, type Node, useReactFlow } from "@xyflow/react"
@@ -15,6 +15,8 @@ type HistoryContextType = {
   recordHistory: () => void
   scheduleSave: () => void
   saveFlow: () => Promise<void>
+  isDirty: boolean
+  setIsDirty: (dirty: boolean) => void
 }
 
 type FlowSnapshot = {
@@ -26,7 +28,7 @@ type HistoryContextProviderProps = {
   children: ReactNode
 }
 
-const initialValue = {
+const initialValue: HistoryContextType = {
   undo: () => {
     // do nothing.
   },
@@ -40,6 +42,10 @@ const initialValue = {
     // do nothing.
   },
   saveFlow: async () => {
+    // do nothing.
+  },
+  isDirty: false,
+  setIsDirty: () => {
     // do nothing.
   },
 }
@@ -60,6 +66,7 @@ export function HistoryContextProvider({
   const updateKeyboard = useUpdateKeyboard()
   const reactFlowInstance = useReactFlow()
   const { keyboardId } = useParams<{ keyboardId: string }>()
+  const [isDirty, setIsDirty] = useState(false)
 
   const saveFlow = useCallback(async () => {
     if (saveTimeoutRef.current) {
@@ -77,8 +84,9 @@ export function HistoryContextProvider({
 
     if (error) {
       console.error("Error saving layout:", error.message)
-      enqueueSnackbar("that was easy!", { variant: "error" })
+      enqueueSnackbar("Error saving layout", { variant: "error" })
     } else {
+      setIsDirty(false)
       enqueueSnackbar("Layout saved successfully!", {
         variant: "success",
       })
@@ -86,6 +94,7 @@ export function HistoryContextProvider({
   }, [updateKeyboard, reactFlowInstance, keyboardId, keyboard])
 
   const scheduleSave = useCallback(() => {
+    setIsDirty(true)
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
     }
@@ -125,8 +134,8 @@ export function HistoryContextProvider({
   }, [getNodes, getEdges, setNodes, setEdges])
 
   const HistoryContextMemo = useMemo(
-    () => ({ undo, redo, recordHistory, scheduleSave, saveFlow }),
-    [undo, redo, recordHistory, scheduleSave, saveFlow],
+    () => ({ undo, redo, recordHistory, scheduleSave, saveFlow, isDirty, setIsDirty }),
+    [undo, redo, recordHistory, scheduleSave, saveFlow, isDirty],
   )
 
   return (

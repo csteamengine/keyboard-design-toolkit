@@ -1,4 +1,4 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material"
+import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material"
 import { useContext, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useReactFlow } from "@xyflow/react"
@@ -16,7 +16,7 @@ type KeyboardMetadata = {
 }
 
 export default function KeyboardSettingsForm() {
-  const { scheduleSave, saveFlow } = useContext(HistoryContext)
+  const { scheduleSave, saveFlow, isDirty, setIsDirty } = useContext(HistoryContext)
   const { user } = useSession()
   const keyboard = useAppSelector(selectKeyboard)
   const dispatch = useAppDispatch()
@@ -29,6 +29,9 @@ export default function KeyboardSettingsForm() {
     (keyboard?.settings?.notes as string) ?? ""
   )
   const [isSaving, setIsSaving] = useState(false)
+
+  const nodes = reactFlowInstance.getNodes()
+  const hasUnsavedNewKeyboard = !keyboard && nodes.length > 0
 
   const handleChange =
     (field: keyof KeyboardMetadata) =>
@@ -98,6 +101,7 @@ export default function KeyboardSettingsForm() {
         settings: { notes },
       })
       if (data && !error) {
+        setIsDirty(false)
         dispatch(setKeyboard(data))
         navigate(`/keyboards/${data.id}`)
       }
@@ -109,6 +113,11 @@ export default function KeyboardSettingsForm() {
   if (!keyboard) {
     return (
       <Box>
+        {hasUnsavedNewKeyboard && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            You have unsaved changes. Create a keyboard to save your layout.
+          </Alert>
+        )}
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Save your layout as a new keyboard
         </Typography>
@@ -157,6 +166,11 @@ export default function KeyboardSettingsForm() {
 
   return (
     <Box>
+      {isDirty && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You have unsaved changes.
+        </Alert>
+      )}
       <Stack spacing={2}>
         <TextField
           label="Keyboard Name"
