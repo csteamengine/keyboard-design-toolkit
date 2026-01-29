@@ -8,7 +8,7 @@ Live demo: [https://keyboard-design-toolkit.vercel.app/](https://keyboard-design
 
 ## Why KDT?
 
-[Keyboard Layout Editor](http://www.keyboard-layout-editor.com/) has been a staple in the keyboard community for years, but it was starting to feel outdated given what modern libraries can do. I decided to rebuild it using [ReactFlow](https://reactflow.dev/), which provides smooth pan/zoom, intuitive drag-and-drop, and a modern canvas-based editing experience
+[Keyboard Layout Editor](http://www.keyboard-layout-editor.com/) has been a staple in the keyboard community for years, but it was starting to feel outdated given what modern libraries can do. KDT is a modern alternative built with [ReactFlow](https://reactflow.dev/), providing smooth pan/zoom, intuitive drag-and-drop, and a modern canvas-based editing experience
 
 ---
 
