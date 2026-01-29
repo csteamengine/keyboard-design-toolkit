@@ -1,65 +1,85 @@
 /* Keyboard Design Toolkit - Global Styles */
+/* Modern Dark Theme - Bold SaaS Aesthetic */
 
-/* CSS Variables - Modern Slate/Indigo Color Palette */
+/* CSS Variables - Dark Theme Palette */
 :root {
-  /* Primary palette - Indigo */
-  --color-primary: #4f46e5;
-  --color-primary-light: #818cf8;
-  --color-primary-dark: #4338ca;
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
+  /* Background hierarchy */
+  --bg-base: #0a0a0b;
+  --bg-subtle: #111113;
+  --bg-surface: #18181b;
+  --bg-elevated: #1f1f23;
+  --bg-muted: #27272a;
 
-  /* Neutral palette - Slate */
-  --color-background: #fafafa;
-  --color-surface: #ffffff;
-  --color-hover-bg: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-dark: #cbd5e1;
-  --color-disabled: #94a3b8;
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
+  /* Borders */
+  --border: #27272a;
+  --border-hover: #3f3f46;
+  --border-accent: #6366f1;
+
+  /* Text */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  /* Primary palette - Violet/Indigo */
+  --color-primary: #6366f1;
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4f46e5;
+  --color-primary-50: rgba(99, 102, 241, 0.1);
+  --color-primary-100: rgba(99, 102, 241, 0.2);
+
+  /* Gradient colors */
+  --gradient-start: #7c3aed;
+  --gradient-mid: #6366f1;
+  --gradient-end: #3b82f6;
 
   /* Accent colors */
   --color-success: #10b981;
-  --color-success-light: #d1fae5;
+  --color-success-light: rgba(16, 185, 129, 0.15);
   --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
   --color-error: #ef4444;
-  --color-error-light: #fee2e2;
+  --color-error-light: rgba(239, 68, 68, 0.15);
   --color-info: #3b82f6;
-  --color-info-light: #dbeafe;
+  --color-info-light: rgba(59, 130, 246, 0.15);
 
   /* Selection/Focus colors */
   --color-selection: #818cf8;
-  --color-focus-ring: rgba(79, 70, 229, 0.3);
+  --color-focus-ring: rgba(99, 102, 241, 0.4);
+
+  /* Glow effects */
+  --glow-primary: 0 0 20px rgba(99, 102, 241, 0.3);
+  --glow-primary-intense: 0 0 30px rgba(99, 102, 241, 0.5);
+
+  /* Legacy mappings for compatibility */
+  --color-background: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-hover-bg: var(--bg-elevated);
+  --color-border: var(--border);
+  --color-border-dark: var(--border-hover);
+  --color-disabled: var(--text-muted);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 }
 
-/* ReactFlow Theme */
+/* ReactFlow Theme - Dark */
 .react-flow {
-  --xy-background-color: #f8fafc;
+  --xy-background-color: var(--bg-subtle);
   --xy-theme-selected: var(--color-primary-light);
-  --xy-theme-hover: var(--color-border-dark);
-  --xy-theme-edge-hover: var(--color-text-primary);
-  --xy-theme-color-focus: var(--color-primary-50);
+  --xy-theme-hover: var(--border-hover);
+  --xy-theme-edge-hover: var(--text-primary);
+  --xy-theme-color-focus: var(--bg-elevated);
 
-  --xy-node-border-default: 1px solid var(--color-border);
-  --xy-node-boxshadow-default: 0 1px 3px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06);
+  --xy-node-border-default: 1px solid var(--border);
+  --xy-node-boxshadow-default: 0 2px 8px rgba(0, 0, 0, 0.4),
+    0 1px 3px rgba(0, 0, 0, 0.3);
   --xy-node-border-radius-default: 6px;
-  --xy-node-background-color-default: var(--color-surface);
+  --xy-node-background-color-default: var(--bg-surface);
 
-  --xy-handle-background-color-default: var(--color-surface);
-  --xy-handle-border-color-default: var(--color-border-dark);
+  --xy-handle-background-color-default: var(--bg-surface);
+  --xy-handle-border-color-default: var(--border-hover);
 
-  --xy-edge-label-color-default: var(--color-text-secondary);
-}
-
-.react-flow.dark {
-  --xy-background-color: #1e293b;
-  --xy-node-boxshadow-default: 0 1px 3px rgba(0, 0, 0, 0.3),
-    0 1px 2px rgba(0, 0, 0, 0.2);
-  --xy-theme-color-focus: #334155;
+  --xy-edge-label-color-default: var(--text-secondary);
 }
 
 /* ReactFlow Node Styling */
@@ -74,7 +94,7 @@
   font-size: 12px;
   flex-direction: column;
   border: none;
-  color: var(--xy-node-color, var(--color-text-primary));
+  color: var(--xy-node-color, var(--text-primary));
   overflow: visible !important; /* Prevent clipping of rotated keys */
 }
 
@@ -96,7 +116,7 @@
 }
 
 .react-flow__node-group {
-  background-color: rgba(79, 70, 229, 0.1);
+  background-color: rgba(99, 102, 241, 0.1);
   border: 1px dashed var(--color-primary-light);
 }
 
@@ -112,7 +132,7 @@
 .react-flow__handle.connectionindicator:hover {
   pointer-events: all;
   border-color: var(--color-primary);
-  background-color: var(--color-surface);
+  background-color: var(--bg-surface);
 }
 
 .react-flow__handle.connectionindicator:focus,
@@ -127,35 +147,55 @@
 }
 
 .react-flow__resize-control.handle {
-  background-color: var(--color-surface);
+  background-color: var(--bg-surface);
   border: 1px solid var(--color-primary);
   border-radius: 2px;
   width: 8px;
   height: 8px;
 }
 
-/* MiniMap Styling */
+/* MiniMap Styling - Dark */
 .react-flow__minimap {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 
-/* Controls Styling */
+.react-flow__minimap-mask {
+  fill: rgba(99, 102, 241, 0.1);
+}
+
+.react-flow__minimap-node {
+  fill: var(--bg-muted);
+  stroke: var(--border-hover);
+}
+
+/* Controls Styling - Dark */
 .react-flow__controls {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   border-radius: 8px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
 .react-flow__controls-button {
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  fill: var(--text-secondary);
 }
 
 .react-flow__controls-button:hover {
-  background-color: var(--color-hover-bg);
+  background-color: var(--bg-elevated);
+  fill: var(--text-primary);
+}
+
+/* Background Pattern - Dark dots */
+.react-flow__background {
+  background-color: var(--bg-subtle);
+}
+
+.react-flow__background pattern circle {
+  fill: var(--border);
 }
 
 /* Custom Theme Classes */
@@ -182,8 +222,8 @@
   padding: 0 1rem;
   border-radius: 6px;
   border: 1px solid var(--color-primary);
-  background-color: var(--color-surface);
-  color: var(--color-primary);
+  background-color: var(--bg-surface);
+  color: var(--color-primary-light);
   font-weight: 500;
   font-size: 0.875rem;
   transition: all 0.15s ease;
@@ -191,29 +231,31 @@
 }
 
 .xy-theme__button.active {
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
   color: white;
-  border-color: var(--color-primary);
+  border-color: transparent;
+  box-shadow: var(--glow-primary);
 }
 
 .xy-theme__button.active:hover,
 .xy-theme__button.active:active {
-  background-color: var(--color-primary-dark);
+  box-shadow: var(--glow-primary-intense);
 }
 
 .xy-theme__button:hover {
-  background-color: var(--color-primary-50);
+  background-color: var(--bg-elevated);
+  border-color: var(--color-primary-light);
 }
 
 .xy-theme__button:active {
-  background-color: var(--color-primary-100);
+  background-color: var(--color-primary-50);
 }
 
 .xy-theme__button:disabled {
-  color: var(--color-disabled);
-  opacity: 0.6;
+  color: var(--text-muted);
+  opacity: 0.5;
   cursor: not-allowed;
-  border-color: var(--color-disabled);
+  border-color: var(--border);
 }
 
 .xy-theme__button > span {
@@ -226,16 +268,16 @@
 
 .xy-theme__input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background-color: var(--color-surface);
+  background-color: var(--bg-muted);
   font-size: 0.875rem;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   transition: all 0.15s ease;
 }
 
 .xy-theme__input:hover {
-  border-color: var(--color-border-dark);
+  border-color: var(--border-hover);
 }
 
 .xy-theme__input:focus {
@@ -250,8 +292,8 @@
   width: 1.125rem;
   height: 1.125rem;
   border-radius: 4px;
-  border: 2px solid var(--color-border-dark);
-  background-color: var(--color-surface);
+  border: 2px solid var(--border-hover);
+  background-color: var(--bg-muted);
   transition: all 0.15s ease;
   cursor: pointer;
   display: inline-block;
@@ -260,8 +302,8 @@
 }
 
 .xy-theme__checkbox:checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  border-color: transparent;
 }
 
 .xy-theme__checkbox:focus {
@@ -271,17 +313,17 @@
 
 .xy-theme__select {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background-color: var(--color-surface);
+  background-color: var(--bg-muted);
   font-size: 0.875rem;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
   transition: all 0.15s ease;
   cursor: pointer;
 }
 
 .xy-theme__select:hover {
-  border-color: var(--color-border-dark);
+  border-color: var(--border-hover);
 }
 
 .xy-theme__select:focus {
@@ -296,33 +338,33 @@
   display: inline-block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }
 
 /* Utility Classes */
 .text-muted {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .text-secondary {
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }
 
-/* Scrollbar Styling */
+/* Scrollbar Styling - Dark */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: var(--bg-base);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-dark);
+  background: var(--border-hover);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-disabled);
+  background: var(--text-muted);
 }

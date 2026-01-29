@@ -35,6 +35,7 @@ const Main = styled("main", {
   flexGrow: 1,
   height: "100vh",
   overflow: "hidden",
+  backgroundColor: "#0a0a0b",
   transition: theme.transitions.create("margin", {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -68,6 +69,8 @@ const openedMixin = (theme: Theme): CSSObject => ({
     duration: theme.transitions.duration.enteringScreen,
   }),
   overflowX: "hidden",
+  backgroundColor: "#111113",
+  borderRight: "1px solid #27272a",
 })
 
 const closedMixin = (theme: Theme): CSSObject => ({
@@ -76,6 +79,8 @@ const closedMixin = (theme: Theme): CSSObject => ({
     duration: theme.transitions.duration.leavingScreen,
   }),
   overflowX: "hidden",
+  backgroundColor: "#111113",
+  borderRight: "1px solid #27272a",
   width: `calc(${theme.spacing(7)} + 1px)`,
   [theme.breakpoints.up("sm")]: {
     width: `calc(${theme.spacing(8)} + 1px)`,
@@ -86,6 +91,10 @@ const AppBar = styled(MuiAppBar, {
   shouldForwardProp: prop => prop !== "open",
 })<AppBarProps>(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  backgroundColor: "rgba(17, 17, 19, 0.8)",
+  backdropFilter: "blur(12px)",
+  borderBottom: "1px solid #27272a",
+  boxShadow: "none",
   transition: theme.transitions.create(["width", "margin"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -158,6 +167,18 @@ export default function PersistentDrawerLeft() {
               {
                 minHeight: 48,
                 px: 2.5,
+                color: "#a1a1aa",
+                "&:hover": {
+                  backgroundColor: "#1f1f23",
+                  color: "#fafafa",
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(99, 102, 241, 0.15)",
+                  color: "#fafafa",
+                  "&:hover": {
+                    backgroundColor: "rgba(99, 102, 241, 0.2)",
+                  },
+                },
               },
               open
                 ? {
@@ -175,6 +196,7 @@ export default function PersistentDrawerLeft() {
                 {
                   minWidth: 0,
                   justifyContent: "center",
+                  color: "inherit",
                 },
                 open
                   ? {
@@ -231,7 +253,7 @@ export default function PersistentDrawerLeft() {
   }
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", backgroundColor: "#0a0a0b" }}>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
         <Toolbar>
@@ -240,12 +262,26 @@ export default function PersistentDrawerLeft() {
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             edge="start"
-            sx={[{ mr: 2 }, open && { display: "none" }]}
+            sx={[
+              { mr: 2, color: "#a1a1aa", "&:hover": { color: "#fafafa" } },
+              open && { display: "none" },
+            ]}
           >
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" noWrap component="div">
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{
+              background: "linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              fontWeight: 600,
+            }}
+          >
             Keyboard Design Toolkit
           </Typography>
 
@@ -253,12 +289,15 @@ export default function PersistentDrawerLeft() {
 
           <Box sx={{ ml: "auto", display: "flex", alignItems: "center" }}>
             {session && username && (
-              <Typography variant="body1" sx={{ mr: 1 }}>
+              <Typography variant="body1" sx={{ mr: 1, color: "#a1a1aa" }}>
                 {username}
               </Typography>
             )}
 
-            <IconButton color="inherit" onClick={handleMenuOpen}>
+            <IconButton
+              sx={{ color: "#a1a1aa", "&:hover": { color: "#fafafa" } }}
+              onClick={handleMenuOpen}
+            >
               <AccountCircle />
             </IconButton>
           </Box>
@@ -288,8 +327,11 @@ export default function PersistentDrawerLeft() {
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" anchor="left" open={open}>
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+        <DrawerHeader sx={{ backgroundColor: "#111113" }}>
+          <IconButton
+            onClick={handleDrawerClose}
+            sx={{ color: "#a1a1aa", "&:hover": { color: "#fafafa" } }}
+          >
             {theme.direction === "ltr" ? (
               <ChevronLeftIcon />
             ) : (
@@ -297,7 +339,7 @@ export default function PersistentDrawerLeft() {
             )}
           </IconButton>
         </DrawerHeader>
-        <Divider />
+        <Divider sx={{ borderColor: "#27272a" }} />
         {drawerContents}
       </Drawer>
       <Main open={open}>

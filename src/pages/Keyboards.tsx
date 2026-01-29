@@ -140,7 +140,12 @@ const Keyboards: React.FC = () => {
         <Box>
           <IconButton
             size="small"
-            color="primary"
+            sx={{
+              color: "#6366f1",
+              "&:hover": {
+                backgroundColor: "rgba(99, 102, 241, 0.1)",
+              },
+            }}
             onClick={() => {
               void navigate("/keyboards/" + params.row.id)
             }}
@@ -149,7 +154,12 @@ const Keyboards: React.FC = () => {
           </IconButton>
           <IconButton
             size="small"
-            color="error"
+            sx={{
+              color: "#ef4444",
+              "&:hover": {
+                backgroundColor: "rgba(239, 68, 68, 0.1)",
+              },
+            }}
             onClick={event => {
               event.stopPropagation()
               event.preventDefault()
@@ -166,9 +176,17 @@ const Keyboards: React.FC = () => {
   const paginationModel = { page: 0, pageSize: 10 }
 
   return (
-    <Box>
+    <Box sx={{ backgroundColor: "#0a0a0b", minHeight: "100%" }}>
       <CssBaseline />
-      <Paper sx={{ flexGrow: 1, flexDirection: "row", m: 3 }}>
+      <Paper
+        sx={{
+          flexGrow: 1,
+          flexDirection: "row",
+          m: 3,
+          backgroundColor: "#18181b",
+          border: "1px solid #27272a",
+        }}
+      >
         <DataGrid
           rows={keyboards}
           loading={loading}
@@ -176,26 +194,86 @@ const Keyboards: React.FC = () => {
           initialState={{ pagination: { paginationModel } }}
           pageSizeOptions={[10, 20]}
           checkboxSelection
-          sx={{ border: 0 }}
           disableColumnFilter={true}
           disableColumnSelector={true}
           processRowUpdate={handleRowUpdate}
           onProcessRowUpdateError={error => {
             console.error("Row update error", error)
           }}
+          sx={{
+            border: 0,
+            backgroundColor: "#18181b",
+            color: "#fafafa",
+            "& .MuiDataGrid-columnHeaders": {
+              backgroundColor: "#111113",
+              borderBottom: "1px solid #27272a",
+            },
+            "& .MuiDataGrid-columnHeaderTitle": {
+              color: "#a1a1aa",
+              fontWeight: 600,
+            },
+            "& .MuiDataGrid-cell": {
+              borderBottom: "1px solid #27272a",
+              color: "#a1a1aa",
+            },
+            "& .MuiDataGrid-row:hover": {
+              backgroundColor: "#1f1f23",
+            },
+            "& .MuiDataGrid-row.Mui-selected": {
+              backgroundColor: "rgba(99, 102, 241, 0.15)",
+              "&:hover": {
+                backgroundColor: "rgba(99, 102, 241, 0.2)",
+              },
+            },
+            "& .MuiDataGrid-footerContainer": {
+              backgroundColor: "#111113",
+              borderTop: "1px solid #27272a",
+            },
+            "& .MuiTablePagination-root": {
+              color: "#a1a1aa",
+            },
+            "& .MuiCheckbox-root": {
+              color: "#3f3f46",
+              "&.Mui-checked": {
+                color: "#6366f1",
+              },
+            },
+            "& .MuiDataGrid-columnSeparator": {
+              color: "#27272a",
+            },
+            "& .MuiDataGrid-menuIcon": {
+              color: "#a1a1aa",
+            },
+            "& .MuiDataGrid-sortIcon": {
+              color: "#a1a1aa",
+            },
+            "& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within":
+              {
+                outline: "none",
+              },
+          }}
         />
       </Paper>
       <Box display="flex" justifyContent="center" mt={2}>
         <Button
           variant="contained"
-          color="primary"
           onClick={() => {
             void handleAddKeyboard()
+          }}
+          sx={{
+            background: "linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)",
+            boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
+            "&:hover": {
+              boxShadow: "0 0 30px rgba(99, 102, 241, 0.5)",
+            },
           }}
         >
           Add Keyboard
         </Button>
-      </Box>{" "}
+      </Box>
     </Box>
   )
 }

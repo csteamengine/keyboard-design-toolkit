@@ -17,26 +17,26 @@ import GoogleIcon from "@mui/icons-material/Google"
 import { Alert, Card } from "@mui/material"
 import { Link } from "react-router-dom"
 
-const SignUpContainer = styled(Stack)(({ theme }) => ({
+const SignUpContainer = styled(Stack)(() => ({
   height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
   minHeight: "100%",
-  padding: theme.spacing(2),
-  [theme.breakpoints.up("sm")]: {
-    padding: theme.spacing(4),
+  padding: "16px",
+  position: "relative",
+  backgroundColor: "#0a0a0b",
+  "@media (min-width: 600px)": {
+    padding: "32px",
   },
   "&::before": {
     content: '""',
     display: "block",
     position: "absolute",
-    zIndex: -1,
+    zIndex: 0,
     inset: 0,
-    backgroundImage:
-      "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
-    backgroundRepeat: "no-repeat",
-    ...theme.applyStyles("dark", {
-      backgroundImage:
-        "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
-    }),
+    background: `
+      radial-gradient(ellipse at 20% 30%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)
+    `,
+    pointerEvents: "none",
   },
 }))
 
@@ -110,15 +110,23 @@ export default function SignUp() {
           gap: 2,
           margin: "auto",
           maxWidth: "450px",
-          boxShadow:
-            "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
+          position: "relative",
+          zIndex: 1,
+          backgroundColor: "rgba(24, 24, 27, 0.8)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid #27272a",
+          boxShadow: "0 16px 48px rgba(0, 0, 0, 0.5)",
         }}
         variant="outlined"
       >
         <Typography
           component="h1"
           variant="h4"
-          sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+          sx={{
+            width: "100%",
+            fontSize: "clamp(2rem, 10vw, 2.15rem)",
+            color: "#fafafa",
+          }}
         >
           Sign up
         </Typography>
@@ -134,7 +142,9 @@ export default function SignUp() {
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
           <FormControl>
-            <FormLabel htmlFor="email">Email</FormLabel>
+            <FormLabel htmlFor="email" sx={{ color: "#a1a1aa" }}>
+              Email
+            </FormLabel>
             <TextField
               required
               fullWidth
@@ -152,7 +162,9 @@ export default function SignUp() {
             />
           </FormControl>
           <FormControl>
-            <FormLabel htmlFor="password">Password</FormLabel>
+            <FormLabel htmlFor="password" sx={{ color: "#a1a1aa" }}>
+              Password
+            </FormLabel>
             <TextField
               required
               fullWidth
@@ -171,8 +183,17 @@ export default function SignUp() {
             />
           </FormControl>
           <FormControlLabel
-            control={<Checkbox value="allowExtraEmails" color="primary" />}
+            control={
+              <Checkbox
+                value="allowExtraEmails"
+                sx={{
+                  color: "#3f3f46",
+                  "&.Mui-checked": { color: "#6366f1" },
+                }}
+              />
+            }
             label="I want to receive updates via email."
+            sx={{ color: "#a1a1aa" }}
           />
           <Button
             type="submit"
@@ -183,8 +204,8 @@ export default function SignUp() {
             Sign up
           </Button>
         </Box>
-        <Divider>
-          <Typography sx={{ color: "text.secondary" }}>or</Typography>
+        <Divider sx={{ borderColor: "#27272a" }}>
+          <Typography sx={{ color: "#71717a" }}>or</Typography>
         </Divider>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Button
@@ -207,8 +228,14 @@ export default function SignUp() {
           >
             Sign up with GitHub
           </Button>
-          <Typography align="center" sx={{ mt: 2 }}>
-            Already have an account? <Link to="/auth/login">Login</Link>
+          <Typography align="center" sx={{ mt: 2, color: "#a1a1aa" }}>
+            Already have an account?{" "}
+            <Link
+              to="/auth/login"
+              style={{ color: "#818cf8", textDecoration: "none" }}
+            >
+              Login
+            </Link>
           </Typography>
         </Box>
         {error && (

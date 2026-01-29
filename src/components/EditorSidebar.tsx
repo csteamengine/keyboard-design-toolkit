@@ -63,7 +63,7 @@ function KeyPreview({ widthU, heightU, label }: KeyPreviewProps) {
   const previewHeight = heightU * UNIT_SIZE * PREVIEW_SCALE
 
   return (
-    <Tooltip title={`${widthU}u × ${heightU}u`} placement="top" arrow>
+    <Tooltip title={`${widthU}u x ${heightU}u`} placement="top" arrow>
       <Box
         draggable
         onDragStart={e => {
@@ -81,9 +81,9 @@ function KeyPreview({ widthU, heightU, label }: KeyPreviewProps) {
         sx={{
           width: previewWidth,
           height: previewHeight,
-          backgroundColor: "#ffffff",
+          backgroundColor: "#27272a",
           border: "1px solid",
-          borderColor: "grey.300",
+          borderColor: "#3f3f46",
           borderRadius: "4px",
           display: "flex",
           alignItems: "center",
@@ -91,14 +91,17 @@ function KeyPreview({ widthU, heightU, label }: KeyPreviewProps) {
           cursor: "grab",
           transition: "all 0.15s ease",
           boxShadow: `
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            inset 0 -2px 0 rgba(0, 0, 0, 0.08)
+            0 2px 4px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.2)
           `,
           "&:hover": {
-            borderColor: "primary.main",
+            borderColor: "#6366f1",
             boxShadow: `
-              0 2px 4px rgba(0, 0, 0, 0.1),
-              inset 0 -2px 0 rgba(0, 0, 0, 0.08)
+              0 0 12px rgba(99, 102, 241, 0.3),
+              0 4px 8px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.2)
             `,
             transform: "translateY(-1px)",
           },
@@ -113,7 +116,7 @@ function KeyPreview({ widthU, heightU, label }: KeyPreviewProps) {
           sx={{
             fontFamily: "monospace",
             fontWeight: 500,
-            color: "text.secondary",
+            color: "#a1a1aa",
             userSelect: "none",
           }}
         >
@@ -266,6 +269,33 @@ export default function EditorSidebar() {
 
   const sidebarWidth = open ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED
 
+  // Section header with gradient underline
+  const SectionHeader = ({ children }: { children: ReactNode }) => (
+    <Box sx={{ mb: 1.5 }}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          color: "#a1a1aa",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          fontSize: "0.7rem",
+          letterSpacing: "0.05em",
+        }}
+      >
+        {children}
+      </Typography>
+      <Box
+        sx={{
+          height: 2,
+          width: 32,
+          mt: 0.5,
+          background: "linear-gradient(90deg, #7c3aed, #6366f1, #3b82f6)",
+          borderRadius: 1,
+        }}
+      />
+    </Box>
+  )
+
   return (
     <>
       <Paper
@@ -278,10 +308,11 @@ export default function EditorSidebar() {
           width: sidebarWidth,
           height: "100%",
           zIndex: 3,
-          backgroundColor: "background.paper",
+          backgroundColor: "#111113",
           overflowY: "auto",
           transition: "width 0.2s ease",
-          boxShadow: theme => theme.shadows[4],
+          borderRight: "1px solid #27272a",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.3)",
         }}
       >
         <Box
@@ -299,28 +330,17 @@ export default function EditorSidebar() {
             sx={{
               flexGrow: 1,
               borderRight: 1,
-              borderColor: "divider",
+              borderColor: "#27272a",
               overflow: "auto",
               opacity: open ? 1 : 0,
               transition: "opacity 0.15s ease",
               pointerEvents: open ? "auto" : "none",
               marginRight: `${SIDEBAR_WIDTH_COLLAPSED}px`,
+              backgroundColor: "#111113",
             }}
           >
             <TabPanel value={activePanel} index="shapes">
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Horizontal Keys
-              </Typography>
+              <SectionHeader>Horizontal Keys</SectionHeader>
               <Box
                 sx={{
                   display: "flex",
@@ -340,21 +360,9 @@ export default function EditorSidebar() {
                 ))}
               </Box>
 
-              <Divider sx={{ my: 2 }} />
+              <Divider sx={{ my: 2, borderColor: "#27272a" }} />
 
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Vertical Keys
-              </Typography>
+              <SectionHeader>Vertical Keys</SectionHeader>
               <Box
                 sx={{
                   display: "flex",
@@ -375,36 +383,12 @@ export default function EditorSidebar() {
             </TabPanel>
 
             <TabPanel value={activePanel} index="details">
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Key Properties
-              </Typography>
+              <SectionHeader>Key Properties</SectionHeader>
               <KeyDetailsForm />
             </TabPanel>
 
             <TabPanel value={activePanel} index="settings">
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Keyboard Settings
-              </Typography>
+              <SectionHeader>Keyboard Settings</SectionHeader>
               <KeyboardSettingsForm />
             </TabPanel>
 
@@ -415,20 +399,8 @@ export default function EditorSidebar() {
                 </Alert>
               )}
 
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Import from KLE
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: "0.75rem" }}>
+              <SectionHeader>Import from KLE</SectionHeader>
+              <Typography variant="body2" sx={{ mb: 1, fontSize: "0.75rem", color: "#71717a" }}>
                 Paste KLE raw data from keyboard-layout-editor.com
               </Typography>
               <TextField
@@ -458,21 +430,9 @@ export default function EditorSidebar() {
                 Import
               </Button>
 
-              <Divider sx={{ my: 2 }} />
+              <Divider sx={{ my: 2, borderColor: "#27272a" }} />
 
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Export to KLE
-              </Typography>
+              <SectionHeader>Export to KLE</SectionHeader>
               <Button
                 variant="outlined"
                 size="small"
@@ -522,22 +482,10 @@ export default function EditorSidebar() {
                 </>
               )}
 
-              <Divider sx={{ my: 2 }} />
+              <Divider sx={{ my: 2, borderColor: "#27272a" }} />
 
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 1.5,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  fontSize: "0.7rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Export to JSON
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: "0.75rem" }}>
+              <SectionHeader>Export to JSON</SectionHeader>
+              <Typography variant="body2" sx={{ mb: 1, fontSize: "0.75rem", color: "#71717a" }}>
                 Export full keyboard data including layout and settings
               </Typography>
               <Button
@@ -604,14 +552,28 @@ export default function EditorSidebar() {
               width: SIDEBAR_WIDTH_COLLAPSED,
               height: "100%",
               borderLeft: 1,
-              borderColor: "divider",
-              backgroundColor: "background.paper",
+              borderColor: "#27272a",
+              backgroundColor: "#111113",
               ".MuiTabs-flexContainer": {
                 flexDirection: "column",
               },
               ".MuiTab-root": {
                 minWidth: SIDEBAR_WIDTH_COLLAPSED,
                 minHeight: 56,
+                color: "#71717a",
+                "&:hover": {
+                  color: "#a1a1aa",
+                  backgroundColor: "#1f1f23",
+                },
+                "&.Mui-selected": {
+                  color: "#fafafa",
+                },
+              },
+              ".MuiTabs-indicator": {
+                left: 0,
+                right: "auto",
+                width: 2,
+                background: "linear-gradient(180deg, #7c3aed, #6366f1, #3b82f6)",
               },
             }}
           >

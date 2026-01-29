@@ -18,26 +18,26 @@ import GitHubIcon from "@mui/icons-material/GitHub"
 import { Link, useNavigate } from "react-router-dom"
 import { Alert, Card, Link as MuiLink } from "@mui/material"
 
-const SignInContainer = styled(Stack)(({ theme }) => ({
+const SignInContainer = styled(Stack)(() => ({
   height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
   minHeight: "100%",
-  padding: theme.spacing(2),
-  [theme.breakpoints.up("sm")]: {
-    padding: theme.spacing(4),
+  padding: "16px",
+  position: "relative",
+  backgroundColor: "#0a0a0b",
+  "@media (min-width: 600px)": {
+    padding: "32px",
   },
   "&::before": {
     content: '""',
     display: "block",
     position: "absolute",
-    zIndex: -1,
+    zIndex: 0,
     inset: 0,
-    backgroundImage:
-      "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
-    backgroundRepeat: "no-repeat",
-    ...theme.applyStyles("dark", {
-      backgroundImage:
-        "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
-    }),
+    background: `
+      radial-gradient(ellipse at 20% 30%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)
+    `,
+    pointerEvents: "none",
   },
 }))
 
@@ -115,15 +115,23 @@ export default function LoginPage() {
           gap: 2,
           margin: "auto",
           maxWidth: "450px",
-          boxShadow:
-            "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
+          position: "relative",
+          zIndex: 1,
+          backgroundColor: "rgba(24, 24, 27, 0.8)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid #27272a",
+          boxShadow: "0 16px 48px rgba(0, 0, 0, 0.5)",
         }}
         variant="outlined"
       >
         <Typography
           component="h1"
           variant="h4"
-          sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+          sx={{
+            width: "100%",
+            fontSize: "clamp(2rem, 10vw, 2.15rem)",
+            color: "#fafafa",
+          }}
         >
           Sign in
         </Typography>
@@ -150,7 +158,9 @@ export default function LoginPage() {
           }}
         >
           <FormControl>
-            <FormLabel htmlFor="email">Email</FormLabel>
+            <FormLabel htmlFor="email" sx={{ color: "#a1a1aa" }}>
+              Email
+            </FormLabel>
             <TextField
               error={emailError}
               helperText={emailErrorMessage}
@@ -170,7 +180,9 @@ export default function LoginPage() {
             />
           </FormControl>
           <FormControl>
-            <FormLabel htmlFor="password">Password</FormLabel>
+            <FormLabel htmlFor="password" sx={{ color: "#a1a1aa" }}>
+              Password
+            </FormLabel>
             <TextField
               error={passwordError}
               helperText={passwordErrorMessage}
@@ -190,8 +202,17 @@ export default function LoginPage() {
             />
           </FormControl>
           <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
+            control={
+              <Checkbox
+                value="remember"
+                sx={{
+                  color: "#3f3f46",
+                  "&.Mui-checked": { color: "#6366f1" },
+                }}
+              />
+            }
             label="Remember me"
+            sx={{ color: "#a1a1aa" }}
           />
           <ForgotPassword open={open} handleClose={handleClose} />
           <Button
@@ -207,7 +228,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleClickOpen}
             variant="body2"
-            sx={{ alignSelf: "center" }}
+            sx={{ alignSelf: "center", color: "#818cf8" }}
           >
             Forgot your password?
           </MuiLink>
@@ -217,7 +238,9 @@ export default function LoginPage() {
             </Alert>
           )}
         </Box>
-        <Divider>or</Divider>
+        <Divider sx={{ borderColor: "#27272a" }}>
+          <Typography sx={{ color: "#71717a" }}>or</Typography>
+        </Divider>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Button
             fullWidth
@@ -239,8 +262,14 @@ export default function LoginPage() {
           >
             Sign in with GitHub
           </Button>
-          <Typography sx={{ textAlign: "center" }}>
-            Don&apos;t have an account? <Link to="/auth/signup">Sign up</Link>
+          <Typography sx={{ textAlign: "center", color: "#a1a1aa" }}>
+            Don&apos;t have an account?{" "}
+            <Link
+              to="/auth/signup"
+              style={{ color: "#818cf8", textDecoration: "none" }}
+            >
+              Sign up
+            </Link>
           </Typography>
         </Box>
       </Card>

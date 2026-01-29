@@ -224,6 +224,10 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
   const rotationHandleX = corners.topRight.x + handleOffset * Math.cos(((rotation - 45) * Math.PI) / 180)
   const rotationHandleY = corners.topRight.y + handleOffset * Math.sin(((rotation - 45) * Math.PI) / 180)
 
+  // Default dark keycap color
+  const keyColor = keyData.color ?? "#27272a"
+  const textColor = keyData.textColor ?? "#a1a1aa"
+
   return (
     <Box
       ref={containerRef}
@@ -240,7 +244,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
       {/* NodeResizer - only for non-rotated keys (rotated keys use custom selection) */}
       {rotation === 0 && (
         <NodeResizer
-          color="var(--color-primary, #4f46e5)"
+          color="#6366f1"
           isVisible={selected}
           minWidth={SNAP_SIZE}
           minHeight={SNAP_SIZE}
@@ -251,9 +255,12 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
             width: 6,
             height: 6,
             borderRadius: 3,
+            backgroundColor: "#18181b",
+            border: "1.5px solid #6366f1",
           }}
           lineStyle={{
             borderWidth: 1,
+            borderColor: "#6366f1",
           }}
         />
       )}
@@ -275,7 +282,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
           <polygon
             points={`${corners.topLeft.x},${corners.topLeft.y} ${corners.topRight.x},${corners.topRight.y} ${corners.bottomRight.x},${corners.bottomRight.y} ${corners.bottomLeft.x},${corners.bottomLeft.y}`}
             fill="none"
-            stroke="var(--color-primary, #4f46e5)"
+            stroke="#6366f1"
             strokeWidth="1"
           />
           {/* Corner handles */}
@@ -286,7 +293,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
                 cx={corner.x}
                 cy={corner.y}
                 r="3"
-                fill="var(--color-primary, #4f46e5)"
+                fill="#6366f1"
               />
             )
           )}
@@ -304,12 +311,12 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
             top: rotationHandleY - 4,
             width: 8,
             height: 8,
-            cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8'/%3E%3Cpath d='M21 3v5h-5'/%3E%3C/svg%3E") 12 12, grab`,
+            cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8'/%3E%3Cpath d='M21 3v5h-5'/%3E%3C/svg%3E") 12 12, grab`,
             zIndex: 1000,
             borderRadius: "50%",
-            backgroundColor: "white",
-            border: "1.5px solid var(--color-primary, #4f46e5)",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+            backgroundColor: "#18181b",
+            border: "1.5px solid #6366f1",
+            boxShadow: "0 0 8px rgba(99, 102, 241, 0.4)",
           }}
           onMouseDown={(e) => {
             e.stopPropagation()
@@ -332,20 +339,37 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: keyData.color ?? "#ffffff",
+          backgroundColor: keyColor,
           borderRadius: "6px",
           border: "1px solid",
-          borderColor: selected ? "var(--color-primary, #4f46e5)" : "#d1d5db",
-          boxShadow: `
-            0 1px 2px rgba(0, 0, 0, 0.05),
-            inset 0 -2px 0 rgba(0, 0, 0, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.5)
-          `,
-          transition: "border-color 0.15s ease",
+          borderColor: selected ? "#6366f1" : "#3f3f46",
+          boxShadow: selected
+            ? `
+              0 0 12px rgba(99, 102, 241, 0.4),
+              0 2px 4px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.2)
+            `
+            : `
+              0 2px 4px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              inset 0 -2px 0 rgba(0, 0, 0, 0.2)
+            `,
+          transition: "border-color 0.15s ease, box-shadow 0.15s ease",
           "&:hover": {
-            borderColor: selected
-              ? "var(--color-primary, #4f46e5)"
-              : "#9ca3af",
+            borderColor: selected ? "#6366f1" : "#52525b",
+            boxShadow: selected
+              ? `
+                0 0 16px rgba(99, 102, 241, 0.5),
+                0 4px 8px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2)
+              `
+              : `
+                0 4px 8px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2)
+              `,
           },
         }}
       >
@@ -355,7 +379,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
             userSelect: "none",
             fontWeight: 500,
             fontSize: actualWidth < 50 ? "0.65rem" : "0.75rem",
-            color: keyData.textColor ?? "#374151",
+            color: textColor,
             textAlign: "center",
             lineHeight: 1.2,
             padding: "2px",

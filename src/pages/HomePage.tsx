@@ -70,24 +70,39 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
+    <Box
+      sx={{
+        p: 3,
+        minHeight: "100%",
+        background: "linear-gradient(180deg, #0a0a0b 0%, #111113 100%)",
+      }}
+    >
+      <Typography variant="h4" gutterBottom sx={{ color: "#fafafa" }}>
         Welcome to the Keyboard Design Toolkit
       </Typography>
-      <Typography variant="subtitle1" gutterBottom>
+      <Typography variant="subtitle1" gutterBottom sx={{ color: "#a1a1aa" }}>
         Build, edit, and export your custom keyboard layouts.
       </Typography>
 
-      {/* Recent Projects */}
-      <Typography variant="h5" mt={5} mb={2}>
+      {/* Recently Edited Section */}
+      <Typography variant="h5" mt={5} mb={2} sx={{ color: "#fafafa" }}>
         Recently Edited Keyboards
       </Typography>
-      <Divider sx={{ mb: 2 }} />
+      {/* Gradient divider */}
+      <Box
+        sx={{
+          height: 2,
+          width: 120,
+          mb: 3,
+          background: "linear-gradient(90deg, #7c3aed, #6366f1, #3b82f6)",
+          borderRadius: 1,
+        }}
+      />
 
       <Grid container spacing={2}>
+        {/* New Project Card with gradient border */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }} key={9999}>
           <Card
-            elevation={4}
             onClick={handleNewProject}
             sx={{
               height: 120,
@@ -97,15 +112,32 @@ const HomePage: React.FC = () => {
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
+              backgroundColor: "#18181b",
+              border: "1px solid transparent",
+              backgroundImage: `
+                linear-gradient(#18181b, #18181b),
+                linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)
+              `,
+              backgroundOrigin: "border-box",
+              backgroundClip: "padding-box, border-box",
+              transition: "all 0.2s ease",
               "&:hover": {
-                backgroundColor: "action.hover",
+                boxShadow: "0 0 24px rgba(99, 102, 241, 0.3)",
+                transform: "translateY(-2px)",
               },
             }}
           >
             <CardContent>
               <Box display="flex" flexDirection="column" alignItems="center">
-                <AddIcon sx={{ fontSize: 48, color: "primary.main" }} />
-                <Typography variant="subtitle1" mt={1}>
+                <AddIcon
+                  sx={{
+                    fontSize: 48,
+                    background: "linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                />
+                <Typography variant="subtitle1" mt={1} sx={{ color: "#fafafa" }}>
                   New Project
                 </Typography>
               </Box>
@@ -116,7 +148,6 @@ const HomePage: React.FC = () => {
         {keyboards.map(project => (
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project.id}>
             <Card
-              elevation={4}
               onClick={() => navigate(`/keyboards/${project.id}`)}
               sx={{
                 height: 120,
@@ -126,14 +157,21 @@ const HomePage: React.FC = () => {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
+                backgroundColor: "#18181b",
+                border: "1px solid #27272a",
+                transition: "all 0.2s ease",
                 "&:hover": {
-                  backgroundColor: "action.hover",
+                  borderColor: "#3f3f46",
+                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+                  transform: "translateY(-2px)",
                 },
               }}
             >
               <CardContent>
-                <Typography variant="h6">{project.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="h6" sx={{ color: "#fafafa" }}>
+                  {project.name}
+                </Typography>
+                <Typography variant="body2" sx={{ color: "#71717a" }}>
                   Last edited: {formatDate(project.updated_at)}
                 </Typography>
               </CardContent>
@@ -142,28 +180,45 @@ const HomePage: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Recent Projects */}
-      <Typography variant="h5" mt={5} mb={2}>
+      {/* Other Actions Section */}
+      <Typography variant="h5" mt={5} mb={2} sx={{ color: "#fafafa" }}>
         Other Actions
       </Typography>
-      <Divider sx={{ mb: 2 }} />
+      {/* Gradient divider */}
+      <Box
+        sx={{
+          height: 2,
+          width: 80,
+          mb: 3,
+          background: "linear-gradient(90deg, #7c3aed, #6366f1, #3b82f6)",
+          borderRadius: 1,
+        }}
+      />
 
       {/* Quick Actions */}
       <Grid container spacing={2} sx={{ mt: 2 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card elevation={4}>
+          <Card
+            sx={{
+              backgroundColor: "#18181b",
+              border: "1px solid #27272a",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                borderColor: "#3f3f46",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              },
+            }}
+          >
             <CardContent>
-              <Typography variant="h6">Import Layout</Typography>
-              <Typography variant="body2">
+              <Typography variant="h6" sx={{ color: "#fafafa" }}>
+                Import Layout
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#71717a" }}>
                 Upload an existing layout (JSON, KLE, etc).
               </Typography>
             </CardContent>
             <CardActions>
-              <Button
-                fullWidth
-                startIcon={<UploadFileIcon />}
-                variant="outlined"
-              >
+              <Button fullWidth startIcon={<UploadFileIcon />} variant="outlined">
                 Import
               </Button>
             </CardActions>
@@ -171,10 +226,22 @@ const HomePage: React.FC = () => {
         </Grid>
 
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card elevation={4}>
+          <Card
+            sx={{
+              backgroundColor: "#18181b",
+              border: "1px solid #27272a",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                borderColor: "#3f3f46",
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+              },
+            }}
+          >
             <CardContent>
-              <Typography variant="h6">Plate Generator</Typography>
-              <Typography variant="body2">
+              <Typography variant="h6" sx={{ color: "#fafafa" }}>
+                Plate Generator
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#71717a" }}>
                 Auto-generate switch plate DXFs from your layout.
               </Typography>
             </CardContent>

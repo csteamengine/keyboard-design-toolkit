@@ -319,12 +319,17 @@ const KeyboardEditor: React.FC = () => {
         flexGrow: 1,
         position: "relative",
         height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
+        backgroundColor: "#0a0a0b",
       }}
     >
       <EditorSidebar />
       <div
         ref={reactFlowWrapper}
-        style={{ flexGrow: 1, position: "relative" }}
+        style={{
+          flexGrow: 1,
+          position: "relative",
+          backgroundColor: "#111113",
+        }}
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
@@ -349,9 +354,16 @@ const KeyboardEditor: React.FC = () => {
           }}
           nodeTypes={nodeTypes}
         >
-          <MiniMap pannable={true} />
+          <MiniMap
+            pannable={true}
+            style={{
+              backgroundColor: "#18181b",
+            }}
+            maskColor="rgba(99, 102, 241, 0.1)"
+            nodeColor="#3f3f46"
+          />
           <Controls />
-          <Background gap={SNAP_SIZE} />
+          <Background gap={SNAP_SIZE} color="#27272a" />
           <HelperLines
             horizontal={helperLineHorizontal}
             vertical={helperLineVertical}
