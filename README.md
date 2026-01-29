@@ -6,9 +6,47 @@ Live demo: [https://keyboard-design-toolkit.vercel.app/](https://keyboard-design
 
 ---
 
-# # Local Development Setup Guide
+## KDT vs Keyboard Layout Editor (KLE)
 
-## Prerequisites
+While [Keyboard Layout Editor](http://www.keyboard-layout-editor.com/) has been an invaluable tool in the keyboard community for years, KDT aims to modernize the layout design experience with several key improvements:
+
+| Feature | KLE | KDT |
+|---------|-----|-----|
+| **Positioning** | Grid-based with relative offsets | Absolute positioning with pixel-perfect control |
+| **Interaction** | Form-based property editing | Drag-and-drop with real-time visual feedback |
+| **Snapping** | Limited | Smart snapping to keys, grid, and alignment guides |
+| **Framework** | Legacy JavaScript | Built on [ReactFlow](https://reactflow.dev/) for a modern, performant canvas |
+| **Multi-select** | Basic | Full multi-select with group transformations |
+| **Rotation** | Per-key rotation with offsets | Intuitive rotation with visual handles |
+| **Cloud Storage** | Gist-based | Integrated Supabase backend with user accounts |
+
+### Why ReactFlow?
+
+KDT leverages ReactFlow to provide a modern, node-based editing experience. This enables:
+- **Smooth pan and zoom** across your entire layout
+- **Intuitive drag-and-drop** for placing and moving keys
+- **Real-time collaboration** potential through the reactive architecture
+- **Extensible node system** for future enhancements like switch/stabilizer visualization
+
+---
+
+## KiCad Integration with kdt-placer
+
+Looking to take your KDT layout into a PCB design? Check out [kdt-placer](https://github.com/csteamengine/kdt-placer) - a companion tool that takes the JSON export from KDT and automatically places KiCad footprints and components for your keyboard PCB.
+
+This is similar to how [kb-placer](https://github.com/adamws/kicad-kbplacer) works with KLE exports, but designed specifically for KDT's JSON format and absolute positioning system.
+
+**Workflow:**
+1. Design your layout in KDT
+2. Export as JSON
+3. Run kdt-placer to generate KiCad component placements
+4. Continue your PCB design with switches already positioned
+
+---
+
+## Local Development Setup Guide
+
+### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v16+ recommended)
 - [Yarn](https://yarnpkg.com/getting-started/install)
