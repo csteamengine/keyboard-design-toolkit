@@ -6,27 +6,9 @@ Live demo: [https://keyboard-design-toolkit.vercel.app/](https://keyboard-design
 
 ---
 
-## KDT vs Keyboard Layout Editor (KLE)
+## Why KDT?
 
-While [Keyboard Layout Editor](http://www.keyboard-layout-editor.com/) has been an invaluable tool in the keyboard community for years, KDT aims to modernize the layout design experience with several key improvements:
-
-| Feature | KLE | KDT |
-|---------|-----|-----|
-| **Positioning** | Grid-based with relative offsets | Absolute positioning with pixel-perfect control |
-| **Interaction** | Form-based property editing | Drag-and-drop with real-time visual feedback |
-| **Snapping** | Limited | Smart snapping to keys, grid, and alignment guides |
-| **Framework** | Legacy JavaScript | Built on [ReactFlow](https://reactflow.dev/) for a modern, performant canvas |
-| **Multi-select** | Basic | Full multi-select with group transformations |
-| **Rotation** | Per-key rotation with offsets | Intuitive rotation with visual handles |
-| **Cloud Storage** | Gist-based | Integrated Supabase backend with user accounts |
-
-### Why ReactFlow?
-
-KDT leverages ReactFlow to provide a modern, node-based editing experience. This enables:
-- **Smooth pan and zoom** across your entire layout
-- **Intuitive drag-and-drop** for placing and moving keys
-- **Real-time collaboration** potential through the reactive architecture
-- **Extensible node system** for future enhancements like switch/stabilizer visualization
+[Keyboard Layout Editor](http://www.keyboard-layout-editor.com/) has been a staple in the keyboard community for years, but it was starting to feel outdated given what modern libraries can do. I decided to rebuild it using [ReactFlow](https://reactflow.dev/), which provides smooth pan/zoom, intuitive drag-and-drop, and a modern canvas-based editing experience
 
 ---
 
