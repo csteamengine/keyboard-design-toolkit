@@ -1,5 +1,6 @@
 import { Box, Button, Stack, TextField, Typography } from "@mui/material"
 import { useContext, useState } from "react"
+import { useSession } from "../context/SessionContext.tsx"
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts"
 import { selectKeyboard, setKeyboard } from "../app/editorSlice.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
@@ -13,6 +14,7 @@ type KeyboardMetadata = {
 
 export default function KeyboardSettingsForm() {
   const { scheduleSave, saveFlow } = useContext(HistoryContext)
+  const { user } = useSession()
   const keyboard = useAppSelector(selectKeyboard)
   const dispatch = useAppDispatch()
   const [name, setName] = useState(keyboard?.name ?? "")
@@ -56,7 +58,7 @@ export default function KeyboardSettingsForm() {
     void saveFlow()
   }
 
-  if (!keyboard) {
+  if (!user) {
     return (
       <Box sx={{ justifyContent: "center", textAlign: "center", mt: 4 }}>
         <Typography variant="h6" gutterBottom>
@@ -72,6 +74,27 @@ export default function KeyboardSettingsForm() {
           href="/auth/login"
         >
           Log In
+        </Button>
+      </Box>
+    )
+  }
+
+  if (!keyboard) {
+    return (
+      <Box sx={{ justifyContent: "center", textAlign: "center", mt: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          No Keyboard Selected
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Please select or create a keyboard to edit settings.
+        </Typography>
+        <Button
+          sx={{ mt: 2 }}
+          variant="contained"
+          color="primary"
+          href="/"
+        >
+          Go to Home
         </Button>
       </Box>
     )

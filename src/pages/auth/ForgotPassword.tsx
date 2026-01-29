@@ -23,7 +23,7 @@ export default function ForgotPassword({
       slotProps={{
         paper: {
           component: "form",
-          onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+          onSubmit: (event: React.BaseSyntheticEvent) => {
             event.preventDefault()
             handleClose()
           },

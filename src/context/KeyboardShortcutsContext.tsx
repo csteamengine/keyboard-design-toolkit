@@ -8,7 +8,7 @@ import {
 } from "react"
 import type { Node, Edge } from "@xyflow/react"
 import { useReactFlow, useStore } from "@xyflow/react"
-import { uuid } from "@supabase/supabase-js/dist/main/lib/helpers"
+import { v4 as uuid } from "uuid"
 import { HistoryContext } from "./HistoryContext.tsx"
 
 const KeyboardShortcutsContext = createContext(null)

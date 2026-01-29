@@ -25,6 +25,8 @@ import KeyDetailsForm from "./KeyDetailsForm.tsx"
 import KeyboardSettingsForm from "./KeyboardSettingsForm.tsx"
 import { importKLE } from "../utils/kleParser"
 import { exportKLE } from "../utils/kleExporter"
+import { useAppSelector } from "../app/hooks.ts"
+import { selectKeyboard } from "../app/editorSlice.tsx"
 import {
   UNIT_SIZE,
   HORIZONTAL_KEY_SIZES,
@@ -130,7 +132,9 @@ export default function EditorSidebar() {
   const [importExportError, setImportExportError] = useState<string | null>(null)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState("")
-  const { setNodes, getNodes } = useReactFlow()
+  const { setNodes, getNodes, getEdges, getViewport } = useReactFlow()
+  const keyboard = useAppSelector(selectKeyboard)
+  const [jsonExportText, setJsonExportText] = useState("")
 
   const handleImport = useCallback(() => {
     setImportExportError(null)
@@ -191,6 +195,59 @@ export default function EditorSidebar() {
       setImportExportError("Failed to download file")
     }
   }, [exportText])
+
+  const handleGenerateJSONExport = useCallback(() => {
+    try {
+      const nodes = getNodes()
+      const edges = getEdges()
+      const viewport = getViewport()
+      const exportData = {
+        version: "1.0",
+        name: keyboard?.name ?? "Untitled Keyboard",
+        description: keyboard?.description ?? "",
+        settings: keyboard?.settings ?? {},
+        layout: {
+          nodes,
+          edges,
+          viewport,
+        },
+        exportedAt: new Date().toISOString(),
+      }
+      setJsonExportText(JSON.stringify(exportData, null, 2))
+      setImportExportError(null)
+    } catch (err) {
+      setImportExportError("Failed to generate JSON export")
+    }
+  }, [getNodes, getEdges, getViewport, keyboard])
+
+  const handleCopyJSONExport = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(jsonExportText)
+      setSnackbarMessage("Copied to clipboard")
+      setSnackbarOpen(true)
+    } catch (err) {
+      setImportExportError("Failed to copy to clipboard")
+    }
+  }, [jsonExportText])
+
+  const handleDownloadJSONFile = useCallback(() => {
+    try {
+      const blob = new Blob([jsonExportText], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      const filename = (keyboard?.name ?? "keyboard").replace(/[^a-z0-9]/gi, "-").toLowerCase()
+      a.download = `${filename}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setSnackbarMessage(`Downloaded ${filename}.json`)
+      setSnackbarOpen(true)
+    } catch (err) {
+      setImportExportError("Failed to download file")
+    }
+  }, [jsonExportText, keyboard])
 
   const handleTabChange = (panelKey: string) => {
     setActivePanel(prev => (prev === panelKey ? "" : panelKey))
@@ -457,6 +514,73 @@ export default function EditorSidebar() {
                       size="small"
                       startIcon={<ContentCopyIcon />}
                       onClick={handleCopyExport}
+                      sx={{ flex: 1 }}
+                    >
+                      Copy
+                    </Button>
+                  </Box>
+                </>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: "text.secondary",
+                  mb: 1.5,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Export to JSON
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: "0.75rem" }}>
+                Export full keyboard data including layout and settings
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleGenerateJSONExport}
+                fullWidth
+                sx={{ mb: 1 }}
+              >
+                Generate JSON Export
+              </Button>
+              {jsonExportText && (
+                <>
+                  <TextField
+                    multiline
+                    rows={6}
+                    fullWidth
+                    size="small"
+                    value={jsonExportText}
+                    InputProps={{ readOnly: true }}
+                    sx={{
+                      mb: 1,
+                      "& .MuiInputBase-input": {
+                        fontFamily: "monospace",
+                        fontSize: "0.7rem",
+                      },
+                    }}
+                  />
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<SaveAltIcon />}
+                      onClick={handleDownloadJSONFile}
+                      sx={{ flex: 1 }}
+                    >
+                      Download
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<ContentCopyIcon />}
+                      onClick={handleCopyJSONExport}
                       sx={{ flex: 1 }}
                     >
                       Copy
