@@ -1,9 +1,12 @@
 import { Box, Button, Stack, TextField, Typography } from "@mui/material"
 import { useContext, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useReactFlow } from "@xyflow/react"
 import { useSession } from "../context/SessionContext.tsx"
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts"
 import { selectKeyboard, setKeyboard } from "../app/editorSlice.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
+import { useCreateKeyboard } from "../context/EditorContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
 
 type KeyboardMetadata = {
@@ -17,11 +20,15 @@ export default function KeyboardSettingsForm() {
   const { user } = useSession()
   const keyboard = useAppSelector(selectKeyboard)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const createKeyboard = useCreateKeyboard()
+  const reactFlowInstance = useReactFlow()
   const [name, setName] = useState(keyboard?.name ?? "")
   const [description, setDescription] = useState(keyboard?.description ?? "")
   const [notes, setNotes] = useState(
     (keyboard?.settings?.notes as string) ?? ""
   )
+  const [isSaving, setIsSaving] = useState(false)
 
   const handleChange =
     (field: keyof KeyboardMetadata) =>
@@ -79,23 +86,71 @@ export default function KeyboardSettingsForm() {
     )
   }
 
+  const handleCreateKeyboard = async () => {
+    if (!name.trim()) return
+    setIsSaving(true)
+    try {
+      const flowData = reactFlowInstance.toObject()
+      const { data, error } = await createKeyboard({
+        name: name.trim(),
+        description: description.trim(),
+        reactflow: flowData,
+        settings: { notes },
+      })
+      if (data && !error) {
+        dispatch(setKeyboard(data))
+        navigate(`/keyboards/${data.id}`)
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   if (!keyboard) {
     return (
-      <Box sx={{ justifyContent: "center", textAlign: "center", mt: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          No Keyboard Selected
+      <Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Save your layout as a new keyboard
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Please select or create a keyboard to edit settings.
-        </Typography>
-        <Button
-          sx={{ mt: 2 }}
-          variant="contained"
-          color="primary"
-          href="/"
-        >
-          Go to Home
-        </Button>
+        <Stack spacing={2}>
+          <TextField
+            label="Keyboard Name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            fullWidth
+            size="small"
+            required
+          />
+
+          <TextField
+            label="Description"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+            size="small"
+          />
+
+          <TextField
+            label="Notes"
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            fullWidth
+            multiline
+            minRows={4}
+            size="small"
+          />
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreateKeyboard}
+            disabled={!name.trim() || isSaving}
+          >
+            {isSaving ? "Saving..." : "Create Keyboard"}
+          </Button>
+        </Stack>
       </Box>
     )
   }
