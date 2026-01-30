@@ -1,14 +1,4 @@
-import {
-  Box,
-  Typography,
-  TextField,
-  Slider,
-  InputAdornment,
-  Stack,
-  Collapse,
-  Alert,
-} from "@mui/material"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
+import { Info } from "lucide-react"
 import { useReactFlow, useStore, type Node } from "@xyflow/react"
 import { useCallback, useEffect, useState } from "react"
 import {
@@ -23,6 +13,7 @@ import {
   getRotatedCorners,
   rotatePoint,
 } from "../utils/rotation"
+import { Input, Slider, Alert } from "./ui"
 
 export default function KeyDetailsForm() {
   const nodes = useStore(state => state.nodes)
@@ -72,8 +63,8 @@ export default function KeyDetailsForm() {
   )
 
   const handleRotationChange = useCallback(
-    (_: Event | React.SyntheticEvent, newValue: number | number[]) => {
-      const newRotation = typeof newValue === "number" ? newValue : newValue[0]
+    (newValue: number) => {
+      const newRotation = newValue
       setRotation(newRotation)
 
       // For multiple selections, rotate around collective center
@@ -271,31 +262,27 @@ export default function KeyDetailsForm() {
 
   if (!firstNode) {
     return (
-      <Box mt={2}>
-        <Typography variant="body2" color="text.secondary">
+      <div className="mt-4">
+        <p className="text-sm text-text-muted">
           Select a key to edit its properties.
-        </Typography>
-      </Box>
+        </p>
+      </div>
     )
   }
 
   return (
-    <Box>
-      <TextField
+    <div className="space-y-4">
+      <Input
         label="Label"
         fullWidth
-        margin="normal"
-        size="small"
-        value={firstNode.data?.label ?? ""}
+        value={(firstNode.data?.label as string) ?? ""}
         onChange={handleLabelChange}
       />
 
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="body2" gutterBottom sx={{ fontWeight: 500 }}>
-          Rotation
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Box sx={{ flexGrow: 1 }}>
+      <div className="mt-6">
+        <p className="text-sm font-medium text-text-secondary mb-2">Rotation</p>
+        <div className="flex gap-4 items-center">
+          <div className="flex-1">
             <Slider
               value={rotation}
               onChange={handleRotationChange}
@@ -311,11 +298,10 @@ export default function KeyDetailsForm() {
                 { value: 270, label: "270°" },
               ]}
             />
-          </Box>
-          <Box sx={{ width: 80 }}>
-            <TextField
+          </div>
+          <div className="w-20">
+            <Input
               type="number"
-              size="small"
               value={rotation}
               onChange={e => {
                 const val = parseInt(e.target.value, 10)
@@ -324,68 +310,42 @@ export default function KeyDetailsForm() {
                     ROTATION_MAX,
                     Math.max(ROTATION_MIN, val)
                   )
-                  handleRotationChange(e, clamped)
+                  handleRotationChange(clamped)
                 }
               }}
-              inputProps={{
-                min: ROTATION_MIN,
-                max: ROTATION_MAX,
-                step: ROTATION_STEP,
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">°</InputAdornment>
-                ),
-              }}
-              fullWidth
+              endAdornment={<span className="text-text-muted">°</span>}
             />
-          </Box>
-        </Stack>
-      </Box>
+          </div>
+        </div>
+      </div>
 
-      <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-        <TextField
+      <div className="flex gap-4 mt-6">
+        <Input
           label="Width"
           type="number"
-          size="small"
-          inputProps={{ step: 0.25, min: 1 }}
           value={width}
           onChange={e => handleWidthChange(parseFloat(e.target.value))}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">U</InputAdornment>,
-          }}
+          endAdornment={<span className="text-text-muted">U</span>}
           fullWidth
         />
-        <TextField
+        <Input
           label="Height"
           type="number"
-          size="small"
-          inputProps={{ step: 0.25, min: 1 }}
           value={height}
           onChange={e => handleHeightChange(parseFloat(e.target.value))}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">U</InputAdornment>,
-          }}
+          endAdornment={<span className="text-text-muted">U</span>}
           fullWidth
         />
-      </Stack>
+      </div>
 
       {/* Tip for rotated keys */}
-      <Collapse in={rotation !== 0}>
-        <Alert
-          severity="info"
-          icon={<InfoOutlinedIcon fontSize="small" />}
-          sx={{
-            mt: 2,
-            py: 0.5,
-            '& .MuiAlert-message': {
-              fontSize: '0.75rem',
-            }
-          }}
-        >
-          Drag-to-resize is not available for rotated keys. Use the width/height fields above, or rotate to 0° to use resize handles.
+      {rotation !== 0 && (
+        <Alert severity="info" icon={<Info className="w-4 h-4" />} className="mt-4">
+          <span className="text-xs">
+            Drag-to-resize is not available for rotated keys. Use the width/height fields above, or rotate to 0° to use resize handles.
+          </span>
         </Alert>
-      </Collapse>
-    </Box>
+      )}
+    </div>
   )
 }

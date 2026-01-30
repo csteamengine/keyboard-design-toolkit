@@ -7,7 +7,6 @@ import {
   type ResizeParams,
 } from "@xyflow/react"
 import { memo, useCallback, useRef, useContext } from "react"
-import { Box, Typography } from "@mui/material"
 import { UNIT_SIZE, SNAP_SIZE, ROTATION_STEP } from "../../constants/editor"
 import {
   getRotatedBoundingBox,
@@ -15,6 +14,7 @@ import {
   getPositionAdjustmentForRotation,
 } from "../../utils/rotation"
 import { HistoryContext } from "../../context/HistoryContext"
+import { useTheme } from "../../context/ThemeContext"
 
 type KeyData = {
   label: string
@@ -34,6 +34,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
   const updateNodeInternals = useUpdateNodeInternals()
   const { setNodes, getNodes } = useReactFlow()
   const { recordHistory, scheduleSave } = useContext(HistoryContext)
+  const { theme } = useTheme()
   const keyData = data as KeyData
   const rotation = keyData.rotation ?? 0
   const actualWidth = (keyData.widthU ?? 1) * UNIT_SIZE
@@ -224,22 +225,17 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
   const rotationHandleX = corners.topRight.x + handleOffset * Math.cos(((rotation - 45) * Math.PI) / 180)
   const rotationHandleY = corners.topRight.y + handleOffset * Math.sin(((rotation - 45) * Math.PI) / 180)
 
-  // Default dark keycap color
-  const keyColor = keyData.color ?? "#27272a"
-  const textColor = keyData.textColor ?? "#a1a1aa"
+  // Theme-aware keycap colors
+  const defaultKeyColor = theme === "dark" ? "#27272a" : "#e2e8f0"
+  const defaultTextColor = theme === "dark" ? "#a1a1aa" : "#475569"
+  const defaultBorderColor = theme === "dark" ? "#3f3f46" : "#cbd5e1"
+  const keyColor = keyData.color ?? defaultKeyColor
+  const textColor = keyData.textColor ?? defaultTextColor
 
   return (
-    <Box
+    <div
       ref={containerRef}
-      sx={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-        overflow: "visible",
-      }}
+      className="w-full h-full flex items-center justify-center relative overflow-visible"
     >
       {/* NodeResizer - only for non-rotated keys (rotated keys use custom selection) */}
       {rotation === 0 && (
@@ -255,7 +251,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
             width: 6,
             height: 6,
             borderRadius: 3,
-            backgroundColor: "#18181b",
+            backgroundColor: theme === "dark" ? "#18181b" : "#ffffff",
             border: "1.5px solid #6366f1",
           }}
           lineStyle={{
@@ -268,15 +264,7 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
       {/* Custom rotated selection for rotated keys */}
       {rotation !== 0 && selected && (
         <svg
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-            overflow: "visible",
-          }}
+          className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-visible"
         >
           {/* Selection outline following rotated shape */}
           <polygon
@@ -303,18 +291,15 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
       {/* Rotation handle - small refined dot (only for single selection) */}
       {selected && selectedCount === 1 && (
         <div
-          className="nodrag nopan"
+          className="nodrag nopan absolute rounded-full z-[1000]"
           data-rotation-handle={id}
           style={{
-            position: "absolute",
             left: rotationHandleX - 4,
             top: rotationHandleY - 4,
             width: 8,
             height: 8,
             cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8'/%3E%3Cpath d='M21 3v5h-5'/%3E%3C/svg%3E") 12 12, grab`,
-            zIndex: 1000,
-            borderRadius: "50%",
-            backgroundColor: "#18181b",
+            backgroundColor: theme === "dark" ? "#18181b" : "#ffffff",
             border: "1.5px solid #6366f1",
             boxShadow: "0 0 8px rgba(99, 102, 241, 0.4)",
           }}
@@ -327,70 +312,35 @@ function KeyboardKey({ id, data, selected }: NodeProps) {
       )}
 
       {/* The actual key visual */}
-      <Box
-        sx={{
-          width: `${actualWidth}px`,
-          height: `${actualHeight}px`,
-          minWidth: `${actualWidth}px`,
-          minHeight: `${actualHeight}px`,
+      <div
+        className="flex items-center justify-center rounded-md transition-all duration-150"
+        style={{
+          width: actualWidth,
+          height: actualHeight,
+          minWidth: actualWidth,
+          minHeight: actualHeight,
           flexShrink: 0,
           transform: rotation !== 0 ? `rotate(${rotation}deg)` : undefined,
           transformOrigin: "center center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           backgroundColor: keyColor,
-          borderRadius: "6px",
-          border: "1px solid",
-          borderColor: selected ? "#6366f1" : "#3f3f46",
+          border: `1px solid ${selected ? "#6366f1" : defaultBorderColor}`,
           boxShadow: selected
-            ? `
-              0 0 12px rgba(99, 102, 241, 0.4),
-              0 2px 4px rgba(0, 0, 0, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05),
-              inset 0 -2px 0 rgba(0, 0, 0, 0.2)
-            `
-            : `
-              0 2px 4px rgba(0, 0, 0, 0.3),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05),
-              inset 0 -2px 0 rgba(0, 0, 0, 0.2)
-            `,
-          transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-          "&:hover": {
-            borderColor: selected ? "#6366f1" : "#52525b",
-            boxShadow: selected
-              ? `
-                0 0 16px rgba(99, 102, 241, 0.5),
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05),
-                inset 0 -2px 0 rgba(0, 0, 0, 0.2)
-              `
-              : `
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05),
-                inset 0 -2px 0 rgba(0, 0, 0, 0.2)
-              `,
-          },
+            ? `0 0 12px rgba(99, 102, 241, 0.4), 0 2px 4px rgba(0, 0, 0, ${theme === "dark" ? "0.3" : "0.1"}), inset 0 1px 0 rgba(255, 255, 255, ${theme === "dark" ? "0.05" : "0.5"}), inset 0 -2px 0 rgba(0, 0, 0, ${theme === "dark" ? "0.2" : "0.05"})`
+            : `0 2px 4px rgba(0, 0, 0, ${theme === "dark" ? "0.3" : "0.1"}), inset 0 1px 0 rgba(255, 255, 255, ${theme === "dark" ? "0.05" : "0.5"}), inset 0 -2px 0 rgba(0, 0, 0, ${theme === "dark" ? "0.2" : "0.05"})`,
         }}
       >
-        <Typography
-          variant="body2"
-          sx={{
-            userSelect: "none",
-            fontWeight: 500,
+        <span
+          className="select-none font-medium text-center leading-tight overflow-hidden text-ellipsis"
+          style={{
             fontSize: actualWidth < 50 ? "0.65rem" : "0.75rem",
             color: textColor,
-            textAlign: "center",
-            lineHeight: 1.2,
             padding: "2px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
           }}
         >
           {String(keyData.label ?? "")}
-        </Typography>
-      </Box>
-    </Box>
+        </span>
+      </div>
+    </div>
   )
 }
 

@@ -1,5 +1,4 @@
-import { Alert, Box, Button, Stack, TextField, Typography } from "@mui/material"
-import { useContext, useState } from "react"
+import { useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useReactFlow } from "@xyflow/react"
 import { useSession } from "../context/SessionContext.tsx"
@@ -8,6 +7,7 @@ import { selectKeyboard, setKeyboard } from "../app/editorSlice.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
 import { useCreateKeyboard } from "../context/EditorContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
+import { Button, Input, Alert } from "./ui"
 
 type KeyboardMetadata = {
   name: string
@@ -29,6 +29,13 @@ export default function KeyboardSettingsForm() {
     (keyboard?.settings?.notes as string) ?? ""
   )
   const [isSaving, setIsSaving] = useState(false)
+
+  // Sync local state when keyboard changes (e.g., loading a different keyboard)
+  useEffect(() => {
+    setName(keyboard?.name ?? "")
+    setDescription(keyboard?.description ?? "")
+    setNotes((keyboard?.settings?.notes as string) ?? "")
+  }, [keyboard?.id])
 
   const nodes = reactFlowInstance.getNodes()
   const hasUnsavedNewKeyboard = !keyboard && nodes.length > 0
@@ -70,22 +77,17 @@ export default function KeyboardSettingsForm() {
 
   if (!user) {
     return (
-      <Box sx={{ justifyContent: "center", textAlign: "center", mt: 4 }}>
-        <Typography variant="h6" gutterBottom>
+      <div className="text-center mt-8">
+        <h3 className="text-lg font-semibold text-white mb-2">
           Not Logged In
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
+        </h3>
+        <p className="text-sm text-text-muted mb-4">
           Please log in to access keyboard settings.
-        </Typography>
-        <Button
-          sx={{ mt: 2 }}
-          variant="contained"
-          color="primary"
-          href="/auth/login"
-        >
+        </p>
+        <Button variant="primary" onClick={() => navigate("/auth/login")}>
           Log In
         </Button>
-      </Box>
+      </div>
     )
   }
 
@@ -112,98 +114,88 @@ export default function KeyboardSettingsForm() {
 
   if (!keyboard) {
     return (
-      <Box>
+      <div className="space-y-4">
         {hasUnsavedNewKeyboard && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert severity="warning">
             You have unsaved changes. Create a keyboard to save your layout.
           </Alert>
         )}
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <p className="text-sm text-text-muted">
           Save your layout as a new keyboard
-        </Typography>
-        <Stack spacing={2}>
-          <TextField
-            label="Keyboard Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            fullWidth
-            size="small"
-            required
-          />
+        </p>
+        <Input
+          label="Keyboard Name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          fullWidth
+          required
+        />
 
-          <TextField
-            label="Description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            fullWidth
-            multiline
-            minRows={2}
-            size="small"
-          />
+        <Input
+          label="Description"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          fullWidth
+          multiline
+          rows={2}
+        />
 
-          <TextField
-            label="Notes"
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            fullWidth
-            multiline
-            minRows={4}
-            size="small"
-          />
+        <Input
+          label="Notes"
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          fullWidth
+          multiline
+          rows={4}
+        />
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreateKeyboard}
-            disabled={!name.trim() || isSaving}
-          >
-            {isSaving ? "Saving..." : "Create Keyboard"}
-          </Button>
-        </Stack>
-      </Box>
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={() => void handleCreateKeyboard()}
+          disabled={!name.trim() || isSaving}
+        >
+          {isSaving ? "Saving..." : "Create Keyboard"}
+        </Button>
+      </div>
     )
   }
 
   return (
-    <Box>
+    <div className="space-y-4">
       {isDirty && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <Alert severity="warning">
           You have unsaved changes.
         </Alert>
       )}
-      <Stack spacing={2}>
-        <TextField
-          label="Keyboard Name"
-          value={name}
-          onChange={handleChange("name")}
-          fullWidth
-          size="small"
-        />
+      <Input
+        label="Keyboard Name"
+        value={name}
+        onChange={handleChange("name")}
+        fullWidth
+      />
 
-        <TextField
-          label="Description"
-          value={description}
-          onChange={handleChange("description")}
-          fullWidth
-          multiline
-          minRows={2}
-          size="small"
-        />
+      <Input
+        label="Description"
+        value={description}
+        onChange={handleChange("description")}
+        fullWidth
+        multiline
+        rows={2}
+      />
 
-        <TextField
-          label="Notes"
-          value={notes}
-          onChange={handleChange("notes")}
-          fullWidth
-          multiline
-          minRows={4}
-          size="small"
-        />
+      <Input
+        label="Notes"
+        value={notes}
+        onChange={handleChange("notes")}
+        fullWidth
+        multiline
+        rows={4}
+      />
 
-        <Button variant="contained" color="primary" onClick={handleSave}>
-          Save
-        </Button>
-      </Stack>
-    </Box>
+      <Button variant="primary" fullWidth onClick={handleSave}>
+        Save
+      </Button>
+    </div>
   )
 }

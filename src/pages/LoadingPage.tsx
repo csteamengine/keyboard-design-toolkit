@@ -1,18 +1,9 @@
-import CircularProgress from "@mui/material/CircularProgress"
-import Box from "@mui/material/Box"
+import { Spinner } from "../components/ui"
 
 export default function LoadingPage() {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <CircularProgress />
-    </Box>
+    <div className="flex h-screen w-screen items-center justify-center bg-bg-base">
+      <Spinner size="lg" className="text-indigo-500" />
+    </div>
   )
 }

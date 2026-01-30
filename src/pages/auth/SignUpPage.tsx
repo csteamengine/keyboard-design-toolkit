@@ -1,44 +1,31 @@
 import * as React from "react"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Checkbox from "@mui/material/Checkbox"
-import Divider from "@mui/material/Divider"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import FormLabel from "@mui/material/FormLabel"
-import FormControl from "@mui/material/FormControl"
-import TextField from "@mui/material/TextField"
-import Typography from "@mui/material/Typography"
-import Stack from "@mui/material/Stack"
-import { styled } from "@mui/material/styles"
 import { useState } from "react"
-import { supabase } from "../../app/supabaseClient.ts"
-import GitHubIcon from "@mui/icons-material/GitHub"
-import GoogleIcon from "@mui/icons-material/Google"
-import { Alert, Card } from "@mui/material"
 import { Link } from "react-router-dom"
+import { Github } from "lucide-react"
+import { supabase } from "../../app/supabaseClient.ts"
+import { Button, Input, Checkbox, Alert, Card } from "../../components/ui"
 
-const SignUpContainer = styled(Stack)(() => ({
-  height: "calc((1 - var(--template-frame-height, 0)) * 100dvh)",
-  minHeight: "100%",
-  padding: "16px",
-  position: "relative",
-  backgroundColor: "#0a0a0b",
-  "@media (min-width: 600px)": {
-    padding: "32px",
-  },
-  "&::before": {
-    content: '""',
-    display: "block",
-    position: "absolute",
-    zIndex: 0,
-    inset: 0,
-    background: `
-      radial-gradient(ellipse at 20% 30%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)
-    `,
-    pointerEvents: "none",
-  },
-}))
+// Google Icon SVG
+const GoogleIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+    />
+    <path
+      fill="currentColor"
+      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+    />
+    <path
+      fill="currentColor"
+      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+    />
+    <path
+      fill="currentColor"
+      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+    />
+  </svg>
+)
 
 export default function SignUp() {
   const [emailError, setEmailError] = React.useState(false)
@@ -72,12 +59,9 @@ export default function SignUp() {
   }
 
   const validateInputs = () => {
-    const email = document.getElementById("email") as HTMLInputElement
-    const password = document.getElementById("password") as HTMLInputElement
-
     let isValid = true
 
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true)
       setEmailErrorMessage("Please enter a valid email address.")
       isValid = false
@@ -86,7 +70,7 @@ export default function SignUp() {
       setEmailErrorMessage("")
     }
 
-    if (!password.value || password.value.length < 6) {
+    if (!password || password.length < 6) {
       setPasswordError(true)
       setPasswordErrorMessage("Password must be at least 6 characters long.")
       isValid = false
@@ -98,157 +82,116 @@ export default function SignUp() {
     return isValid
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (validateInputs()) {
+      void handleEmailSignup()
+    }
+  }
+
   return (
-    <SignUpContainer direction="column" justifyContent="space-between">
-      <Card
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignSelf: "center",
-          width: "100%",
-          padding: 4,
-          gap: 2,
-          margin: "auto",
-          maxWidth: "450px",
-          position: "relative",
-          zIndex: 1,
-          backgroundColor: "rgba(24, 24, 27, 0.8)",
-          backdropFilter: "blur(12px)",
-          border: "1px solid #27272a",
-          boxShadow: "0 16px 48px rgba(0, 0, 0, 0.5)",
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 relative bg-bg-base">
+      {/* Background gradient orbs */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse at 20% 30%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)
+          `,
         }}
-        variant="outlined"
+      />
+
+      <Card
+        variant="glass"
+        className="w-full max-w-[450px] p-8 relative z-10"
       >
-        <Typography
-          component="h1"
-          variant="h4"
-          sx={{
-            width: "100%",
-            fontSize: "clamp(2rem, 10vw, 2.15rem)",
-            color: "#fafafa",
-          }}
-        >
-          Sign up
-        </Typography>
-        <Box
-          component="form"
-          onSubmit={e => {
-            e.preventDefault()
-            e.stopPropagation()
-            if (validateInputs()) {
-              void handleEmailSignup()
-            }
-          }}
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-        >
-          <FormControl>
-            <FormLabel htmlFor="email" sx={{ color: "#a1a1aa" }}>
-              Email
-            </FormLabel>
-            <TextField
-              required
-              fullWidth
-              id="email"
-              placeholder="your@email.com"
-              name="email"
-              autoComplete="email"
-              variant="outlined"
-              error={emailError}
-              helperText={emailErrorMessage}
-              color={passwordError ? "error" : "primary"}
-              onChange={e => {
-                setEmail(e.target.value)
-              }}
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel htmlFor="password" sx={{ color: "#a1a1aa" }}>
-              Password
-            </FormLabel>
-            <TextField
-              required
-              fullWidth
-              name="password"
-              placeholder="••••••"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              variant="outlined"
-              error={passwordError}
-              helperText={passwordErrorMessage}
-              color={passwordError ? "error" : "primary"}
-              onChange={e => {
-                setPassword(e.target.value)
-              }}
-            />
-          </FormControl>
-          <FormControlLabel
-            control={
-              <Checkbox
-                value="allowExtraEmails"
-                sx={{
-                  color: "#3f3f46",
-                  "&.Mui-checked": { color: "#6366f1" },
-                }}
-              />
-            }
-            label="I want to receive updates via email."
-            sx={{ color: "#a1a1aa" }}
-          />
-          <Button
-            type="submit"
+        <h1 className="text-3xl font-bold text-text-primary mb-6">Sign up</h1>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="your@email.com"
+            autoComplete="email"
+            required
             fullWidth
-            variant="contained"
-            onClick={validateInputs}
-          >
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={emailError}
+            helperText={emailErrorMessage}
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="••••••"
+            autoComplete="new-password"
+            required
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={passwordError}
+            helperText={passwordErrorMessage}
+          />
+
+          <Checkbox label="I want to receive updates via email." />
+
+          <Button type="submit" variant="primary" fullWidth>
             Sign up
           </Button>
-        </Box>
-        <Divider sx={{ borderColor: "#27272a" }}>
-          <Typography sx={{ color: "#71717a" }}>or</Typography>
-        </Divider>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        </form>
+
+        <div className="flex items-center gap-4 my-6">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-text-muted text-sm">or</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        <div className="flex flex-col gap-3">
           <Button
-            fullWidth
             variant="outlined"
-            onClick={() => {
-              void handleOAuthSignup("google")
-            }}
+            fullWidth
             startIcon={<GoogleIcon />}
+            onClick={() => void handleOAuthSignup("google")}
           >
             Sign up with Google
           </Button>
+
           <Button
-            fullWidth
             variant="outlined"
-            onClick={() => {
-              void handleOAuthSignup("github")
-            }}
-            startIcon={<GitHubIcon />}
+            fullWidth
+            startIcon={<Github className="w-5 h-5" />}
+            onClick={() => void handleOAuthSignup("github")}
           >
             Sign up with GitHub
           </Button>
-          <Typography align="center" sx={{ mt: 2, color: "#a1a1aa" }}>
+
+          <p className="text-center text-text-secondary mt-4">
             Already have an account?{" "}
             <Link
               to="/auth/login"
-              style={{ color: "#818cf8", textDecoration: "none" }}
+              className="text-indigo-400 hover:text-indigo-300 transition-colors"
             >
               Login
             </Link>
-          </Typography>
-        </Box>
+          </p>
+        </div>
+
         {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
+          <Alert severity="error" className="mt-4">
             {error}
           </Alert>
         )}
         {success && (
-          <Alert severity="success" sx={{ mt: 2 }}>
+          <Alert severity="success" className="mt-4">
             {success}
           </Alert>
         )}
       </Card>
-    </SignUpContainer>
+    </div>
   )
 }

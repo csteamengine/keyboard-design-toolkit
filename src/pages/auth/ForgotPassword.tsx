@@ -1,11 +1,5 @@
 import type * as React from "react"
-import Button from "@mui/material/Button"
-import Dialog from "@mui/material/Dialog"
-import DialogActions from "@mui/material/DialogActions"
-import DialogContent from "@mui/material/DialogContent"
-import DialogContentText from "@mui/material/DialogContentText"
-import DialogTitle from "@mui/material/DialogTitle"
-import OutlinedInput from "@mui/material/OutlinedInput"
+import { Button, Input, Dialog, DialogTitle, DialogContent, DialogActions } from "../../components/ui"
 
 type ForgotPasswordProps = {
   open: boolean
@@ -16,47 +10,38 @@ export default function ForgotPassword({
   open,
   handleClose,
 }: ForgotPasswordProps) {
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    handleClose()
+  }
+
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      slotProps={{
-        paper: {
-          component: "form",
-          onSubmit: (event: React.BaseSyntheticEvent) => {
-            event.preventDefault()
-            handleClose()
-          },
-          sx: { backgroundImage: "none" },
-        },
-      }}
-    >
-      <DialogTitle>Reset password</DialogTitle>
-      <DialogContent
-        sx={{ display: "flex", flexDirection: "column", gap: 2, width: "100%" }}
-      >
-        <DialogContentText>
-          Enter your account&apos;s email address, and we&apos;ll send you a
-          link to reset your password.
-        </DialogContentText>
-        <OutlinedInput
-          autoFocus
-          required
-          margin="dense"
-          id="email"
-          name="email"
-          label="Email address"
-          placeholder="Email address"
-          type="email"
-          fullWidth
-        />
-      </DialogContent>
-      <DialogActions sx={{ pb: 3, px: 3 }}>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" type="submit">
-          Continue
-        </Button>
-      </DialogActions>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm">
+      <form onSubmit={handleSubmit}>
+        <DialogTitle>Reset password</DialogTitle>
+        <DialogContent className="flex flex-col gap-4">
+          <p className="text-text-secondary text-sm">
+            Enter your account&apos;s email address, and we&apos;ll send you a
+            link to reset your password.
+          </p>
+          <Input
+            type="email"
+            name="email"
+            placeholder="Email address"
+            required
+            autoFocus
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="ghost" type="button" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit">
+            Continue
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   )
 }

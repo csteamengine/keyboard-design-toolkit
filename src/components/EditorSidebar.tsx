@@ -1,25 +1,14 @@
-import {
-  Tabs,
-  Tab,
-  Box,
-  Typography,
-  Paper,
-  Tooltip,
-  Divider,
-  TextField,
-  Button,
-  Alert,
-  Snackbar,
-} from "@mui/material"
 import type { ReactNode } from "react"
 import { useState, useCallback } from "react"
-import CategoryIcon from "@mui/icons-material/Category"
-import TuneIcon from "@mui/icons-material/Tune"
-import SettingsIcon from "@mui/icons-material/Settings"
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
-import ContentCopyIcon from "@mui/icons-material/ContentCopy"
-import FileUploadIcon from "@mui/icons-material/FileUpload"
-import SaveAltIcon from "@mui/icons-material/SaveAlt"
+import {
+  Shapes,
+  SlidersHorizontal,
+  Settings,
+  ArrowLeftRight,
+  Copy,
+  Upload,
+  Download,
+} from "lucide-react"
 import { useReactFlow } from "@xyflow/react"
 import KeyDetailsForm from "./KeyDetailsForm.tsx"
 import KeyboardSettingsForm from "./KeyboardSettingsForm.tsx"
@@ -35,6 +24,7 @@ import {
   SIDEBAR_WIDTH_COLLAPSED,
   SIDEBAR_WIDTH_EXPANDED,
 } from "../constants/editor"
+import { Button, Input, Alert, Tooltip } from "./ui"
 
 type TabPanelProps = {
   children?: ReactNode
@@ -47,7 +37,7 @@ function TabPanel(props: TabPanelProps) {
 
   return (
     <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ p: 2 }}>{children}</Box>}
+      {value === index && <div className="p-4">{children}</div>}
     </div>
   )
 }
@@ -63,8 +53,8 @@ function KeyPreview({ widthU, heightU, label }: KeyPreviewProps) {
   const previewHeight = heightU * UNIT_SIZE * PREVIEW_SCALE
 
   return (
-    <Tooltip title={`${widthU}u x ${heightU}u`} placement="top" arrow>
-      <Box
+    <Tooltip content={`${widthU}u x ${heightU}u`} placement="top">
+      <div
         draggable
         onDragStart={e => {
           e.dataTransfer.setData(
@@ -78,58 +68,27 @@ function KeyPreview({ widthU, heightU, label }: KeyPreviewProps) {
           )
           e.dataTransfer.effectAllowed = "move"
         }}
-        sx={{
+        className="flex items-center justify-center cursor-grab rounded transition-all duration-150
+                   bg-bg-muted border border-border
+                   hover:border-indigo-500 hover:-translate-y-0.5
+                   active:cursor-grabbing active:translate-y-0"
+        style={{
           width: previewWidth,
           height: previewHeight,
-          backgroundColor: "#27272a",
-          border: "1px solid",
-          borderColor: "#3f3f46",
-          borderRadius: "4px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "grab",
-          transition: "all 0.15s ease",
-          boxShadow: `
-            0 2px 4px rgba(0, 0, 0, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05),
-            inset 0 -2px 0 rgba(0, 0, 0, 0.2)
-          `,
-          "&:hover": {
-            borderColor: "#6366f1",
-            boxShadow: `
-              0 0 12px rgba(99, 102, 241, 0.3),
-              0 4px 8px rgba(0, 0, 0, 0.4),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05),
-              inset 0 -2px 0 rgba(0, 0, 0, 0.2)
-            `,
-            transform: "translateY(-1px)",
-          },
-          "&:active": {
-            cursor: "grabbing",
-            transform: "translateY(0)",
-          },
+          boxShadow: `0 2px 4px rgba(0, 0, 0, 0.2)`,
         }}
       >
-        <Typography
-          variant="caption"
-          sx={{
-            fontFamily: "monospace",
-            fontWeight: 500,
-            color: "#a1a1aa",
-            userSelect: "none",
-          }}
-        >
+        <span className="font-mono text-xs font-medium text-text-secondary select-none">
           {label}
-        </Typography>
-      </Box>
+        </span>
+      </div>
     </Tooltip>
   )
 }
 
 export default function EditorSidebar() {
   const [open, setOpen] = useState(false)
-  const [activePanel, setActivePanel] = useState<string>("shapes")
+  const [activePanel, setActivePanel] = useState<string>("")
   const [importText, setImportText] = useState("")
   const [exportText, setExportText] = useState("")
   const [importExportError, setImportExportError] = useState<string | null>(null)
@@ -252,18 +211,17 @@ export default function EditorSidebar() {
     }
   }, [jsonExportText, keyboard])
 
-  const handleTabChange = (panelKey: string) => {
-    setActivePanel(prev => (prev === panelKey ? "" : panelKey))
-    if (activePanel === panelKey && open) {
+  const handleTabClick = (panelKey: string) => {
+    if (!open) {
+      // Sidebar is closed - open it and show this tab
+      setActivePanel(panelKey)
+      setOpen(true)
+    } else if (activePanel === panelKey) {
+      // Clicking the already active tab - close the sidebar
       setOpen(false)
     } else {
-      setOpen(true)
-    }
-  }
-
-  const handleTabClick = (value: string) => {
-    if (value === activePanel) {
-      setOpen(!open)
+      // Clicking a different tab - switch to it
+      setActivePanel(panelKey)
     }
   }
 
@@ -271,115 +229,59 @@ export default function EditorSidebar() {
 
   // Section header with gradient underline
   const SectionHeader = ({ children }: { children: ReactNode }) => (
-    <Box sx={{ mb: 1.5 }}>
-      <Typography
-        variant="subtitle2"
-        sx={{
-          color: "#a1a1aa",
-          fontWeight: 600,
-          textTransform: "uppercase",
-          fontSize: "0.7rem",
-          letterSpacing: "0.05em",
-        }}
-      >
+    <div className="mb-3">
+      <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
         {children}
-      </Typography>
-      <Box
-        sx={{
-          height: 2,
-          width: 32,
-          mt: 0.5,
+      </h3>
+      <div
+        className="h-0.5 w-8 mt-1 rounded"
+        style={{
           background: "linear-gradient(90deg, #7c3aed, #6366f1, #3b82f6)",
-          borderRadius: 1,
         }}
       />
-    </Box>
+    </div>
   )
+
+  const tabs = [
+    { key: "shapes", icon: <Shapes className="w-5 h-5" />, label: "Key Shapes" },
+    { key: "details", icon: <SlidersHorizontal className="w-5 h-5" />, label: "Key Details" },
+    { key: "settings", icon: <Settings className="w-5 h-5" />, label: "Settings" },
+    { key: "import-export", icon: <ArrowLeftRight className="w-5 h-5" />, label: "Import/Export" },
+  ]
 
   return (
     <>
-      <Paper
-        elevation={3}
-        sx={{
-          borderRadius: 0,
-          position: "relative",
-          bottom: "auto",
-          left: "auto",
+      <div
+        className="relative h-full z-[3] bg-bg-subtle border-r border-border overflow-y-auto transition-all duration-200"
+        style={{
           width: sidebarWidth,
-          height: "100%",
-          zIndex: 3,
-          backgroundColor: "#111113",
-          overflowY: "auto",
-          transition: "width 0.2s ease",
-          borderRight: "1px solid #27272a",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.3)",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            height: "100%",
-            width: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0,
-          }}
-        >
+        <div className="flex h-full w-full absolute top-0 left-0">
           {/* Content area */}
-          <Box
-            sx={{
-              flexGrow: 1,
-              borderRight: 1,
-              borderColor: "#27272a",
-              overflow: "auto",
-              opacity: open ? 1 : 0,
-              transition: "opacity 0.15s ease",
-              pointerEvents: open ? "auto" : "none",
-              marginRight: `${SIDEBAR_WIDTH_COLLAPSED}px`,
-              backgroundColor: "#111113",
-            }}
+          <div
+            className={`flex-grow border-r border-border overflow-auto transition-opacity duration-150 bg-bg-subtle ${
+              open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            style={{ marginRight: SIDEBAR_WIDTH_COLLAPSED }}
           >
             <TabPanel value={activePanel} index="shapes">
               <SectionHeader>Horizontal Keys</SectionHeader>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 1,
-                  alignItems: "flex-start",
-                  mb: 3,
-                }}
-              >
+              <div className="flex flex-wrap gap-2 items-start mb-6">
                 {HORIZONTAL_KEY_SIZES.map(u => (
-                  <KeyPreview
-                    key={u}
-                    widthU={u}
-                    heightU={1}
-                    label={`${u}u`}
-                  />
+                  <KeyPreview key={u} widthU={u} heightU={1} label={`${u}u`} />
                 ))}
-              </Box>
+              </div>
 
-              <Divider sx={{ my: 2, borderColor: "#27272a" }} />
+              <div className="border-t border-border my-4" />
 
               <SectionHeader>Vertical Keys</SectionHeader>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 1,
-                  alignItems: "flex-start",
-                }}
-              >
+              <div className="flex flex-wrap gap-2 items-start">
                 {VERTICAL_KEY_SIZES.map(u => (
-                  <KeyPreview
-                    key={`${u}v`}
-                    widthU={1}
-                    heightU={u}
-                    label={`${u}u`}
-                  />
+                  <KeyPreview key={`${u}v`} widthU={1} heightU={u} label={`${u}u`} />
                 ))}
-              </Box>
+              </div>
             </TabPanel>
 
             <TabPanel value={activePanel} index="details">
@@ -394,223 +296,172 @@ export default function EditorSidebar() {
 
             <TabPanel value={activePanel} index="import-export">
               {importExportError && (
-                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setImportExportError(null)}>
+                <Alert severity="error" className="mb-4" onClose={() => setImportExportError(null)}>
                   {importExportError}
                 </Alert>
               )}
 
               <SectionHeader>Import from KLE</SectionHeader>
-              <Typography variant="body2" sx={{ mb: 1, fontSize: "0.75rem", color: "#71717a" }}>
+              <p className="text-xs text-text-muted mb-2">
                 Paste KLE raw data from keyboard-layout-editor.com
-              </Typography>
-              <TextField
+              </p>
+              <Input
                 multiline
                 rows={6}
                 fullWidth
-                size="small"
                 placeholder="Paste KLE data here..."
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
-                sx={{
-                  mb: 1,
-                  "& .MuiInputBase-input": {
-                    fontFamily: "monospace",
-                    fontSize: "0.7rem",
-                  },
-                }}
+                className="font-mono text-xs mb-2"
               />
               <Button
-                variant="contained"
-                size="small"
-                startIcon={<FileUploadIcon />}
+                variant="primary"
+                size="sm"
+                startIcon={<Upload className="w-4 h-4" />}
                 onClick={handleImport}
                 fullWidth
-                sx={{ mb: 3 }}
+                className="mb-6"
               >
                 Import
               </Button>
 
-              <Divider sx={{ my: 2, borderColor: "#27272a" }} />
+              <div className="border-t border-border my-4" />
 
               <SectionHeader>Export to KLE</SectionHeader>
               <Button
                 variant="outlined"
-                size="small"
+                size="sm"
                 onClick={handleGenerateExport}
                 fullWidth
-                sx={{ mb: 1 }}
+                className="mb-2"
               >
                 Generate Export
               </Button>
               {exportText && (
                 <>
-                  <TextField
+                  <Input
                     multiline
                     rows={6}
                     fullWidth
-                    size="small"
                     value={exportText}
-                    InputProps={{ readOnly: true }}
-                    sx={{
-                      mb: 1,
-                      "& .MuiInputBase-input": {
-                        fontFamily: "monospace",
-                        fontSize: "0.7rem",
-                      },
-                    }}
+                    readOnly
+                    className="font-mono text-xs mb-2"
                   />
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <div className="flex gap-2">
                     <Button
                       variant="outlined"
-                      size="small"
-                      startIcon={<SaveAltIcon />}
+                      size="sm"
+                      startIcon={<Download className="w-4 h-4" />}
                       onClick={handleDownloadJSON}
-                      sx={{ flex: 1 }}
+                      className="flex-1"
                     >
                       Download
                     </Button>
                     <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<ContentCopyIcon />}
-                      onClick={handleCopyExport}
-                      sx={{ flex: 1 }}
+                      variant="primary"
+                      size="sm"
+                      startIcon={<Copy className="w-4 h-4" />}
+                      onClick={() => void handleCopyExport()}
+                      className="flex-1"
                     >
                       Copy
                     </Button>
-                  </Box>
+                  </div>
                 </>
               )}
 
-              <Divider sx={{ my: 2, borderColor: "#27272a" }} />
+              <div className="border-t border-border my-4" />
 
               <SectionHeader>Export to JSON</SectionHeader>
-              <Typography variant="body2" sx={{ mb: 1, fontSize: "0.75rem", color: "#71717a" }}>
+              <p className="text-xs text-text-muted mb-2">
                 Export full keyboard data including layout and settings
-              </Typography>
+              </p>
               <Button
                 variant="outlined"
-                size="small"
+                size="sm"
                 onClick={handleGenerateJSONExport}
                 fullWidth
-                sx={{ mb: 1 }}
+                className="mb-2"
               >
                 Generate JSON Export
               </Button>
               {jsonExportText && (
                 <>
-                  <TextField
+                  <Input
                     multiline
                     rows={6}
                     fullWidth
-                    size="small"
                     value={jsonExportText}
-                    InputProps={{ readOnly: true }}
-                    sx={{
-                      mb: 1,
-                      "& .MuiInputBase-input": {
-                        fontFamily: "monospace",
-                        fontSize: "0.7rem",
-                      },
-                    }}
+                    readOnly
+                    className="font-mono text-xs mb-2"
                   />
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <div className="flex gap-2">
                     <Button
                       variant="outlined"
-                      size="small"
-                      startIcon={<SaveAltIcon />}
+                      size="sm"
+                      startIcon={<Download className="w-4 h-4" />}
                       onClick={handleDownloadJSONFile}
-                      sx={{ flex: 1 }}
+                      className="flex-1"
                     >
                       Download
                     </Button>
                     <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<ContentCopyIcon />}
-                      onClick={handleCopyJSONExport}
-                      sx={{ flex: 1 }}
+                      variant="primary"
+                      size="sm"
+                      startIcon={<Copy className="w-4 h-4" />}
+                      onClick={() => void handleCopyJSONExport()}
+                      className="flex-1"
                     >
                       Copy
                     </Button>
-                  </Box>
+                  </div>
                 </>
               )}
             </TabPanel>
-          </Box>
+          </div>
 
           {/* Tabs on the right side */}
-          <Tabs
-            value={activePanel}
-            onChange={(_, val) => handleTabChange(val)}
-            orientation="vertical"
-            variant="fullWidth"
-            sx={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: SIDEBAR_WIDTH_COLLAPSED,
-              height: "100%",
-              borderLeft: 1,
-              borderColor: "#27272a",
-              backgroundColor: "#111113",
-              ".MuiTabs-flexContainer": {
-                flexDirection: "column",
-              },
-              ".MuiTab-root": {
-                minWidth: SIDEBAR_WIDTH_COLLAPSED,
-                minHeight: 56,
-                color: "#71717a",
-                "&:hover": {
-                  color: "#a1a1aa",
-                  backgroundColor: "#1f1f23",
-                },
-                "&.Mui-selected": {
-                  color: "#fafafa",
-                },
-              },
-              ".MuiTabs-indicator": {
-                left: 0,
-                right: "auto",
-                width: 2,
-                background: "linear-gradient(180deg, #7c3aed, #6366f1, #3b82f6)",
-              },
-            }}
+          <div
+            className="absolute top-0 right-0 h-full flex flex-col border-l border-border bg-bg-subtle"
+            style={{ width: SIDEBAR_WIDTH_COLLAPSED }}
           >
-            <Tab
-              icon={<CategoryIcon />}
-              value="shapes"
-              aria-label="Key Shapes"
-              onClick={() => handleTabClick("shapes")}
-            />
-            <Tab
-              icon={<TuneIcon />}
-              value="details"
-              aria-label="Key Details"
-              onClick={() => handleTabClick("details")}
-            />
-            <Tab
-              icon={<SettingsIcon />}
-              value="settings"
-              aria-label="Settings"
-              onClick={() => handleTabClick("settings")}
-            />
-            <Tab
-              icon={<SwapHorizIcon />}
-              value="import-export"
-              aria-label="Import/Export"
-              onClick={() => handleTabClick("import-export")}
-            />
-          </Tabs>
-        </Box>
-      </Paper>
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => handleTabClick(tab.key)}
+                className={`
+                  relative flex items-center justify-center h-14 w-full transition-colors
+                  ${activePanel === tab.key
+                    ? "text-text-primary"
+                    : "text-text-muted hover:text-text-secondary hover:bg-bg-muted/50"}
+                `}
+                aria-label={tab.label}
+              >
+                {tab.icon}
+                {/* Gradient indicator */}
+                {activePanel === tab.key && (
+                  <span
+                    className="absolute left-0 top-0 bottom-0 w-0.5"
+                    style={{
+                      background: "linear-gradient(180deg, #7c3aed, #6366f1, #3b82f6)",
+                    }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+      {/* Snackbar */}
+      {snackbarOpen && (
+        <div
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-bg-surface border border-border rounded-lg shadow-lg text-sm text-text-primary"
+          onClick={() => setSnackbarOpen(false)}
+        >
+          {snackbarMessage}
+        </div>
+      )}
     </>
   )
 }

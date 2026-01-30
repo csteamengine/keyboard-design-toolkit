@@ -198,6 +198,85 @@
   fill: var(--border);
 }
 
+/* ==================== */
+/* Light Theme Overrides */
+/* ==================== */
+
+:root.light {
+  /* Background hierarchy */
+  --bg-base: #f8fafc;
+  --bg-subtle: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-muted: #e2e8f0;
+
+  /* Borders */
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+}
+
+/* ReactFlow Light Mode */
+:root.light .react-flow {
+  --xy-background-color: var(--bg-subtle);
+}
+
+:root.light .react-flow__background {
+  background-color: var(--bg-subtle);
+}
+
+:root.light .react-flow__background pattern circle {
+  fill: var(--border-hover);
+}
+
+:root.light .react-flow__minimap {
+  background-color: var(--bg-surface);
+  border-color: var(--border);
+}
+
+:root.light .react-flow__minimap-node {
+  fill: var(--border-hover);
+  stroke: var(--border);
+}
+
+:root.light .react-flow__controls {
+  background-color: var(--bg-surface);
+  border-color: var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:root.light .react-flow__controls-button {
+  background-color: var(--bg-surface);
+  border-bottom-color: var(--border);
+  fill: var(--text-secondary);
+}
+
+:root.light .react-flow__controls-button:hover {
+  background-color: var(--bg-muted);
+  fill: var(--text-primary);
+}
+
+:root.light .react-flow__resize-control.handle {
+  background-color: var(--bg-surface);
+}
+
+/* Scrollbar Light Mode */
+:root.light ::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+:root.light ::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+}
+
+:root.light ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 /* Custom Theme Classes */
 .xy-theme__button-group {
   display: flex;

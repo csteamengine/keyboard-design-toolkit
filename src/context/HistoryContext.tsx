@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useMemo } from "react"
 import { createContext, useCallback } from "react"
 import { type Edge, type Node, useReactFlow } from "@xyflow/react"
@@ -132,6 +132,23 @@ export function HistoryContextProvider({
       setEdges(next.edges)
     }
   }, [getNodes, getEdges, setNodes, setEdges])
+
+  // Show browser confirmation when navigating away with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+        // Modern browsers show a generic message, but we still need to set returnValue
+        e.returnValue = "You have unsaved changes. Are you sure you want to leave?"
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
+  }, [isDirty])
 
   const HistoryContextMemo = useMemo(
     () => ({ undo, redo, recordHistory, scheduleSave, saveFlow, isDirty, setIsDirty }),

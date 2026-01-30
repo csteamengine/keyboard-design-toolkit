@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Custom theme configuration - Dark Theme */
+/* Custom theme configuration - Dark Theme (default) */
 @theme {
   /* Background hierarchy */
   --color-bg-base: #0a0a0b;
@@ -46,6 +46,31 @@
   --color-info-light: rgba(59, 130, 246, 0.15);
 }
 
+/* Light Theme */
+:root.light {
+  --color-bg-base: #f8fafc;
+  --color-bg-subtle: #f1f5f9;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-bg-muted: #e2e8f0;
+
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-border-accent: #6366f1;
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+
+  --color-surface: #ffffff;
+  --color-background: #f8fafc;
+
+  --color-success-light: rgba(16, 185, 129, 0.1);
+  --color-warning-light: rgba(245, 158, 11, 0.1);
+  --color-error-light: rgba(239, 68, 68, 0.1);
+  --color-info-light: rgba(59, 130, 246, 0.1);
+}
+
 body {
   margin: 0;
   font-family:
@@ -53,8 +78,9 @@ body {
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #0a0a0b;
-  color: #fafafa;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 code {
@@ -78,6 +104,11 @@ code {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(39, 39, 42, 0.5);
+}
+
+:root.light .glass {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 /* Primary glow effect */
@@ -152,4 +183,48 @@ code {
   border-radius: 50%;
   filter: blur(40px);
   pointer-events: none;
+}
+
+/* Light mode gradient border */
+:root.light .gradient-border {
+  background: #ffffff;
+}
+
+/* ReactFlow - Base dark mode styling */
+.react-flow {
+  background: var(--color-bg-subtle);
+}
+
+/* ReactFlow Controls - Light mode */
+:root.light .react-flow__controls {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+:root.light .react-flow__controls-button {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+:root.light .react-flow__controls-button:hover {
+  background: #f1f5f9;
+}
+
+:root.light .react-flow__controls-button svg {
+  fill: #475569;
+}
+
+/* ReactFlow MiniMap - Light mode */
+:root.light .react-flow__minimap {
+  background: #f1f5f9;
+}
+
+/* ReactFlow Panel/Attribution - Light mode */
+:root.light .react-flow__panel {
+  background: transparent;
+}
+
+/* ReactFlow Background - Light mode */
+:root.light .react-flow {
+  background: #f1f5f9;
 }

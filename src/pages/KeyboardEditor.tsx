@@ -15,24 +15,28 @@ import {
 
 import "@xyflow/react/dist/style.css"
 import "../styles.css"
-import { useParams } from "react-router-dom"
+import { useParams, useBlocker } from "react-router-dom"
 import type { PostgrestError } from "@supabase/supabase-js"
 import { getHelperLines } from "../utils/utils.ts"
 import HelperLines from "../components/HelperLines.tsx"
 import ContextMenu from "../components/ContextMenu.tsx"
 import { v4 as uuid } from "uuid"
 import type { KeyboardLayout } from "../types/KeyboardTypes.ts"
-import { useTheme } from "@mui/material/styles"
 import { useFetchKeyboard } from "../context/EditorContext.tsx"
 import LoadingPage from "./LoadingPage.tsx"
 import ErrorPage from "./ErrorPage.tsx"
 import EditorSidebar from "../components/EditorSidebar.tsx"
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "../components/ui/Dialog.tsx"
+import { Button } from "../components/ui"
 import KeyboardKey from "../components/shapes/KeyboardKey.tsx"
 import GroupRotationHandle from "../components/GroupRotationHandle.tsx"
 import { HistoryContext } from "../context/HistoryContext.tsx"
+import { useTheme } from "../context/ThemeContext.tsx"
 import { useAppDispatch } from "../app/hooks.ts"
 import { setKeyboard } from "../app/editorSlice.tsx"
 import { UNIT_SIZE, SNAP_SIZE, FINE_SNAP_SIZE } from "../constants/editor"
+
+const TOOLBAR_HEIGHT = 56
 
 const nodeTypes = {
   keyboardKey: KeyboardKey,
@@ -56,8 +60,11 @@ const KeyboardEditor: React.FC = () => {
   const [menu, setMenu] = useState<MenuState>(null)
   const reactFlowInstance = useReactFlow()
   const { screenToFlowPosition } = useReactFlow()
-  const theme = useTheme()
-  const { recordHistory, scheduleSave } = useContext(HistoryContext)
+  const { recordHistory, scheduleSave, setIsDirty, isDirty } = useContext(HistoryContext)
+  const { theme } = useTheme()
+
+  // Block navigation when there are unsaved changes
+  const blocker = useBlocker(isDirty)
   const dispatch = useAppDispatch()
 
   const [helperLineHorizontal, setHelperLineHorizontal] = useState<number | undefined>(undefined)
@@ -65,6 +72,9 @@ const KeyboardEditor: React.FC = () => {
 
   const [nodes, setNodes] = useNodesState<Node>([])
   const [edges, setEdges] = useEdgesState<Edge>([])
+
+  // Track initialization to prevent false dirty state from fitView
+  const isInitializedRef = useRef(false)
 
   // Track Alt key for fine snap mode
   const [isAltPressed, setIsAltPressed] = useState(false)
@@ -187,6 +197,13 @@ const KeyboardEditor: React.FC = () => {
     scheduleSave()
   }, [scheduleSave])
 
+  const onMoveEnd = useCallback(() => {
+    // Only schedule save after initial load completes to prevent fitView from triggering dirty state
+    if (isInitializedRef.current) {
+      scheduleSave()
+    }
+  }, [scheduleSave])
+
   function safeCloneNode(node: Node): Node {
     return {
       ...node,
@@ -198,12 +215,14 @@ const KeyboardEditor: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false
+    isInitializedRef.current = false // Reset initialization state when loading new keyboard
 
     const load = async () => {
       if (!keyboardId) {
         setNodes([])
         setEdges([])
         setLoading(false)
+        isInitializedRef.current = true // Mark as initialized for new keyboard mode
         return
       }
       setLoading(true)
@@ -227,10 +246,15 @@ const KeyboardEditor: React.FC = () => {
           setNodes(nodesForReactFlow)
           setEdges(layout.edges ?? [])
           dispatch(setKeyboard(data))
+          setIsDirty(false) // Reset dirty state when loading a new keyboard
         }
       }
 
       setLoading(false)
+      // Delay marking as initialized to allow fitView to complete without triggering dirty state
+      setTimeout(() => {
+        isInitializedRef.current = true
+      }, 100)
     }
 
     void load()
@@ -314,22 +338,13 @@ const KeyboardEditor: React.FC = () => {
 
   return (
     <div
-      style={{
-        display: "flex",
-        flexGrow: 1,
-        position: "relative",
-        height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
-        backgroundColor: "#0a0a0b",
-      }}
+      className="flex flex-grow relative bg-bg-base"
+      style={{ height: `calc(100vh - ${TOOLBAR_HEIGHT}px)` }}
     >
       <EditorSidebar />
       <div
         ref={reactFlowWrapper}
-        style={{
-          flexGrow: 1,
-          position: "relative",
-          backgroundColor: "#111113",
-        }}
+        className="flex-grow relative bg-bg-subtle"
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
@@ -343,7 +358,7 @@ const KeyboardEditor: React.FC = () => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onMoveEnd={scheduleSave}
+          onMoveEnd={onMoveEnd}
           onNodeContextMenu={onNodeContextMenu}
           onNodeDragStart={onNodeDragStart}
           onNodeDragStop={onNodeDragStop}
@@ -357,13 +372,13 @@ const KeyboardEditor: React.FC = () => {
           <MiniMap
             pannable={true}
             style={{
-              backgroundColor: "#18181b",
+              backgroundColor: theme === "dark" ? "#18181b" : "#f1f5f9",
             }}
-            maskColor="rgba(99, 102, 241, 0.1)"
-            nodeColor="#3f3f46"
+            maskColor={theme === "dark" ? "rgba(99, 102, 241, 0.1)" : "rgba(99, 102, 241, 0.15)"}
+            nodeColor={theme === "dark" ? "#3f3f46" : "#cbd5e1"}
           />
-          <Controls />
-          <Background gap={SNAP_SIZE} color="#27272a" />
+          <Controls className={theme === "light" ? "react-flow-controls-light" : ""} />
+          <Background gap={SNAP_SIZE} color={theme === "dark" ? "#27272a" : "#cbd5e1"} />
           <HelperLines
             horizontal={helperLineHorizontal}
             vertical={helperLineVertical}
@@ -372,6 +387,25 @@ const KeyboardEditor: React.FC = () => {
           {menu && <ContextMenu onClick={onPaneClick} {...menu} />}
         </ReactFlow>
       </div>
+
+      {/* Navigation blocker dialog */}
+      <Dialog
+        open={blocker.state === "blocked"}
+        onClose={() => blocker.reset?.()}
+      >
+        <DialogTitle>Unsaved Changes</DialogTitle>
+        <DialogContent>
+          You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost.
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => blocker.reset?.()}>
+            Stay
+          </Button>
+          <Button variant="primary" onClick={() => blocker.proceed?.()}>
+            Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }

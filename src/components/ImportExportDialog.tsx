@@ -1,26 +1,21 @@
 import { useState } from "react"
+import { Upload, Download, Copy } from "lucide-react"
+import { importKLE } from "../utils/kleParser"
+import { exportKLE } from "../utils/kleExporter"
+import type { Node } from "@xyflow/react"
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  Tabs,
-  Tab,
-  Box,
-  TextField,
-  Typography,
+  Input,
   Alert,
-  IconButton,
-  Snackbar,
-} from "@mui/material"
-import ContentCopyIcon from "@mui/icons-material/ContentCopy"
-import FileUploadIcon from "@mui/icons-material/FileUpload"
-import FileDownloadIcon from "@mui/icons-material/FileDownload"
-import SaveAltIcon from "@mui/icons-material/SaveAlt"
-import { importKLE } from "../utils/kleParser"
-import { exportKLE } from "../utils/kleExporter"
-import type { Node } from "@xyflow/react"
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+} from "./ui"
 
 type ImportExportDialogProps = {
   open: boolean
@@ -29,39 +24,25 @@ type ImportExportDialogProps = {
   getNodes: () => Node[]
 }
 
-type TabPanelProps = {
-  children?: React.ReactNode
-  index: number
-  value: number
-}
-
-function TabPanel({ children, value, index }: TabPanelProps) {
-  return (
-    <div role="tabpanel" hidden={value !== index}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  )
-}
-
 export default function ImportExportDialog({
   open,
   onClose,
   onImport,
   getNodes,
 }: ImportExportDialogProps) {
-  const [tab, setTab] = useState(0)
+  const [tab, setTab] = useState("import")
   const [importText, setImportText] = useState("")
   const [exportText, setExportText] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState("")
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (newValue: string) => {
     setTab(newValue)
     setError(null)
+    setSuccessMessage(null)
 
     // Generate export text when switching to export tab
-    if (newValue === 1) {
+    if (newValue === "export") {
       try {
         const nodes = getNodes()
         const kleText = exportKLE(nodes)
@@ -92,10 +73,12 @@ export default function ImportExportDialog({
       // Replace current nodes with imported ones
       onImport(nodes)
 
-      setSnackbarMessage(`Imported ${nodes.length} keys successfully`)
-      setSnackbarOpen(true)
+      setSuccessMessage(`Imported ${nodes.length} keys successfully`)
       setImportText("")
-      onClose()
+      setTimeout(() => {
+        onClose()
+        setSuccessMessage(null)
+      }, 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to parse KLE data")
       console.error(err)
@@ -105,8 +88,8 @@ export default function ImportExportDialog({
   const handleCopyExport = async () => {
     try {
       await navigator.clipboard.writeText(exportText)
-      setSnackbarMessage("Copied to clipboard")
-      setSnackbarOpen(true)
+      setSuccessMessage("Copied to clipboard")
+      setTimeout(() => setSuccessMessage(null), 2000)
     } catch (err) {
       setError("Failed to copy to clipboard")
       console.error(err)
@@ -124,8 +107,8 @@ export default function ImportExportDialog({
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      setSnackbarMessage("Downloaded keyboard-layout.json")
-      setSnackbarOpen(true)
+      setSuccessMessage("Downloaded keyboard-layout.json")
+      setTimeout(() => setSuccessMessage(null), 2000)
     } catch (err) {
       setError("Failed to download file")
       console.error(err)
@@ -134,49 +117,48 @@ export default function ImportExportDialog({
 
   const handleClose = () => {
     setError(null)
+    setSuccessMessage(null)
     setImportText("")
     onClose()
   }
 
   return (
-    <>
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Import / Export KLE Format</DialogTitle>
-        <DialogContent>
-          <Tabs value={tab} onChange={handleTabChange}>
-            <Tab
-              icon={<FileUploadIcon sx={{ fontSize: 18 }} />}
-              iconPosition="start"
-              label="Import"
-            />
-            <Tab
-              icon={<FileDownloadIcon sx={{ fontSize: 18 }} />}
-              iconPosition="start"
-              label="Export"
-            />
-          </Tabs>
+    <Dialog open={open} onClose={handleClose} maxWidth="lg">
+      <DialogTitle onClose={handleClose}>Import / Export KLE Format</DialogTitle>
+      <DialogContent>
+        <Tabs value={tab} onChange={handleTabChange}>
+          <TabList>
+            <Tab value="import" icon={<Upload className="w-4 h-4" />} label="Import" />
+            <Tab value="export" icon={<Download className="w-4 h-4" />} label="Export" />
+          </TabList>
 
           {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
+            <Alert severity="error" className="mt-4" onClose={() => setError(null)}>
               {error}
             </Alert>
           )}
 
-          <TabPanel value={tab} index={0}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {successMessage && (
+            <Alert severity="success" className="mt-4">
+              {successMessage}
+            </Alert>
+          )}
+
+          <TabPanel value="import" className="pt-4">
+            <p className="text-sm text-text-muted mb-4">
               Paste your Keyboard Layout Editor (KLE) JSON data below. You can
               copy this from{" "}
               <a
                 href="https://keyboard-layout-editor.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "inherit" }}
+                className="text-indigo-400 hover:text-indigo-300"
               >
                 keyboard-layout-editor.com
               </a>{" "}
               using the Raw Data tab.
-            </Typography>
-            <TextField
+            </p>
+            <Input
               multiline
               rows={12}
               fullWidth
@@ -185,108 +167,78 @@ export default function ImportExportDialog({
 [{w:1.5},"Tab","Q","W","E"]`}
               value={importText}
               onChange={e => setImportText(e.target.value)}
-              sx={{
-                fontFamily: "monospace",
-                "& .MuiInputBase-input": {
-                  fontFamily: "monospace",
-                  fontSize: "0.8125rem",
-                },
-              }}
+              className="font-mono text-xs"
             />
-            <Alert severity="info" sx={{ mt: 2 }}>
+            <Alert severity="info" className="mt-4">
               Importing will replace your current layout. Make sure to save
               your work first.
             </Alert>
           </TabPanel>
 
-          <TabPanel value={tab} index={1}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <TabPanel value="export" className="pt-4">
+            <p className="text-sm text-text-muted mb-4">
               Copy this KLE JSON and paste it into the Raw Data tab on{" "}
               <a
                 href="https://keyboard-layout-editor.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "inherit" }}
+                className="text-indigo-400 hover:text-indigo-300"
               >
                 keyboard-layout-editor.com
               </a>
               .
-            </Typography>
-            <Box sx={{ position: "relative" }}>
-              <TextField
+            </p>
+            <div className="relative">
+              <Input
                 multiline
                 rows={12}
                 fullWidth
                 value={exportText}
-                InputProps={{
-                  readOnly: true,
-                }}
-                sx={{
-                  fontFamily: "monospace",
-                  "& .MuiInputBase-input": {
-                    fontFamily: "monospace",
-                    fontSize: "0.8125rem",
-                  },
-                }}
+                readOnly
+                className="font-mono text-xs"
               />
-              <IconButton
-                onClick={handleCopyExport}
-                sx={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  backgroundColor: "background.paper",
-                  "&:hover": {
-                    backgroundColor: "action.hover",
-                  },
-                }}
-                size="small"
+              <button
+                onClick={() => void handleCopyExport()}
+                className="absolute top-2 right-2 p-2 rounded bg-bg-surface hover:bg-bg-muted text-text-secondary hover:text-text-primary transition-colors"
               >
-                <ContentCopyIcon fontSize="small" />
-              </IconButton>
-            </Box>
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
           </TabPanel>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose} color="inherit">
-            Cancel
+        </Tabs>
+      </DialogContent>
+      <DialogActions>
+        <Button variant="ghost" onClick={handleClose}>
+          Cancel
+        </Button>
+        {tab === "import" && (
+          <Button
+            variant="primary"
+            onClick={handleImport}
+            startIcon={<Upload className="w-4 h-4" />}
+          >
+            Import
           </Button>
-          {tab === 0 && (
+        )}
+        {tab === "export" && (
+          <>
             <Button
-              onClick={handleImport}
-              variant="contained"
-              startIcon={<FileUploadIcon />}
+              variant="outlined"
+              onClick={handleDownloadJSON}
+              startIcon={<Download className="w-4 h-4" />}
             >
-              Import
+              Download JSON
             </Button>
-          )}
-          {tab === 1 && (
-            <>
-              <Button
-                onClick={handleDownloadJSON}
-                variant="outlined"
-                startIcon={<SaveAltIcon />}
-              >
-                Download JSON
-              </Button>
-              <Button
-                onClick={handleCopyExport}
-                variant="contained"
-                startIcon={<ContentCopyIcon />}
-              >
-                Copy to Clipboard
-              </Button>
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
-    </>
+            <Button
+              variant="primary"
+              onClick={() => void handleCopyExport()}
+              startIcon={<Copy className="w-4 h-4" />}
+            >
+              Copy to Clipboard
+            </Button>
+          </>
+        )}
+      </DialogActions>
+    </Dialog>
   )
 }

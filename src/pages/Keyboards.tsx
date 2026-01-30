@@ -1,12 +1,19 @@
 import type React from "react"
-import { useEffect, useState } from "react"
-import { CssBaseline, Box, Button, Paper, IconButton } from "@mui/material"
-import type { GridColDef, GridRowModel } from "@mui/x-data-grid"
-import { DataGrid } from "@mui/x-data-grid"
-import DeleteIcon from "@mui/icons-material/Delete"
-import EditIcon from "@mui/icons-material/Edit"
-import { supabase } from "../app/supabaseClient.ts"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
+import { Pencil, Trash2 } from "lucide-react"
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  type RowSelectionState,
+} from "@tanstack/react-table"
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
+import { supabase } from "../app/supabaseClient.ts"
 import {
   useCreateKeyboard,
   useDeleteKeyboard,
@@ -14,6 +21,7 @@ import {
 } from "../context/EditorContext.tsx"
 import type { Keyboard } from "../types/KeyboardTypes.ts"
 import { useSession } from "../context/SessionContext.tsx"
+import { Button, Checkbox, Card, Input } from "../components/ui"
 
 const Keyboards: React.FC = () => {
   const navigate = useNavigate()
@@ -24,12 +32,25 @@ const Keyboards: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const { session, user } = useSession()
 
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+
+  // Editable cell state
+  const [editingCell, setEditingCell] = useState<{
+    id: string
+    field: "name" | "description"
+  } | null>(null)
+  const [editValue, setEditValue] = useState("")
+
   useEffect(() => {
     const loadKeyboards = async () => {
       const { data, error } = await fetchKeyboards()
 
       if (error) {
-        // TODO better error messaging to user
         console.error("Error fetching keyboards:", error.message)
         return
       }
@@ -75,206 +96,327 @@ const Keyboards: React.FC = () => {
     }
   }
 
-  async function handleRowUpdate(newRow: GridRowModel, oldRow: GridRowModel) {
+  const startEditing = (id: string, field: "name" | "description", value: string) => {
+    setEditingCell({ id, field })
+    setEditValue(value)
+  }
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingCell) return
+
+    const keyboard = keyboards.find(k => k.id === editingCell.id)
+    if (!keyboard) return
+
+    // Only save if the value changed
     if (
-      newRow.name === oldRow.name &&
-      newRow.description === oldRow.description
+      (editingCell.field === "name" && editValue === keyboard.name) ||
+      (editingCell.field === "description" && editValue === keyboard.description)
     ) {
-      return oldRow // No change
+      setEditingCell(null)
+      return
     }
 
     const { error } = await supabase
       .from("keyboards")
       .update({
-        name: newRow.name,
-        description: newRow.description,
+        [editingCell.field]: editValue,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", newRow.id)
+      .eq("id", editingCell.id)
 
     if (error) {
       console.error("Supabase update error:", error.message)
-      throw new Error("Failed to update row")
+    } else {
+      setKeyboards(prev =>
+        prev.map(k =>
+          k.id === editingCell.id
+            ? { ...k, [editingCell.field]: editValue, updated_at: new Date().toISOString() }
+            : k
+        )
+      )
     }
 
-    return { ...newRow, updated_at: new Date().toISOString() }
+    setEditingCell(null)
+  }, [editingCell, editValue, keyboards])
+
+  const handleCancelEdit = () => {
+    setEditingCell(null)
+    setEditValue("")
   }
 
-  const columns: GridColDef[] = [
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      minWidth: 130,
-      editable: true,
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      flex: 1,
-      editable: true,
-    },
-    {
-      field: "created_at",
-      headerName: "Created At",
-      flex: 1,
-      minWidth: 180,
-      valueFormatter: value => {
-        return new Date(value).toLocaleString()
+  const columns = useMemo<ColumnDef<Keyboard>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+        size: 50,
+        enableSorting: false,
       },
-    },
-    {
-      field: "updated_at",
-      headerName: "Updated At",
-      flex: 1,
-      minWidth: 180,
-      valueFormatter: value => new Date(value).toLocaleString(),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 150,
-      sortable: false,
-      filterable: false,
-      renderCell: params => (
-        <Box>
-          <IconButton
-            size="small"
-            sx={{
-              color: "#6366f1",
-              "&:hover": {
-                backgroundColor: "rgba(99, 102, 241, 0.1)",
-              },
-            }}
-            onClick={() => {
-              void navigate("/keyboards/" + params.row.id)
-            }}
-          >
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{
-              color: "#ef4444",
-              "&:hover": {
-                backgroundColor: "rgba(239, 68, 68, 0.1)",
-              },
-            }}
-            onClick={event => {
-              event.stopPropagation()
-              event.preventDefault()
-              void handleDeleteKeyboard(params.row.id)
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      ),
-    },
-  ]
+      {
+        accessorKey: "name",
+        header: "Name",
+        cell: ({ row }) => {
+          const isEditing =
+            editingCell?.id === row.original.id && editingCell?.field === "name"
+          if (isEditing) {
+            return (
+              <Input
+                value={editValue}
+                onChange={e => setEditValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") void handleSaveEdit()
+                  if (e.key === "Escape") handleCancelEdit()
+                }}
+                onBlur={() => void handleSaveEdit()}
+                autoFocus
+                className="py-0 text-sm"
+              />
+            )
+          }
+          return (
+            <span
+              onClick={() => startEditing(row.original.id, "name", row.original.name)}
+              className="cursor-pointer hover:text-text-primary transition-colors"
+            >
+              {row.original.name}
+            </span>
+          )
+        },
+        minSize: 130,
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }) => {
+          const isEditing =
+            editingCell?.id === row.original.id && editingCell?.field === "description"
+          if (isEditing) {
+            return (
+              <Input
+                value={editValue}
+                onChange={e => setEditValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") void handleSaveEdit()
+                  if (e.key === "Escape") handleCancelEdit()
+                }}
+                onBlur={() => void handleSaveEdit()}
+                autoFocus
+                className="py-0 text-sm"
+              />
+            )
+          }
+          return (
+            <span
+              onClick={() =>
+                startEditing(row.original.id, "description", row.original.description ?? "")
+              }
+              className="cursor-pointer hover:text-text-primary transition-colors"
+            >
+              {row.original.description ?? "—"}
+            </span>
+          )
+        },
+      },
+      {
+        accessorKey: "created_at",
+        header: "Created At",
+        cell: ({ row }) => new Date(row.original.created_at).toLocaleString(),
+        minSize: 180,
+      },
+      {
+        accessorKey: "updated_at",
+        header: "Updated At",
+        cell: ({ row }) => new Date(row.original.updated_at).toLocaleString(),
+        minSize: 180,
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex gap-1">
+            <button
+              onClick={() => navigate("/keyboards/" + row.original.id)}
+              className="p-2 text-indigo-400 hover:bg-indigo-500/10 rounded transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button
+              onClick={event => {
+                event.stopPropagation()
+                void handleDeleteKeyboard(row.original.id)
+              }}
+              className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ),
+        size: 100,
+        enableSorting: false,
+      },
+    ],
+    [editingCell, editValue, handleSaveEdit, navigate]
+  )
 
-  const paginationModel = { page: 0, pageSize: 10 }
+  const table = useReactTable({
+    data: keyboards,
+    columns,
+    state: {
+      sorting,
+      rowSelection,
+      pagination,
+    },
+    onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getRowId: row => row.id,
+    enableRowSelection: true,
+  })
 
   return (
-    <Box sx={{ backgroundColor: "#0a0a0b", minHeight: "100%" }}>
-      <CssBaseline />
-      <Paper
-        sx={{
-          flexGrow: 1,
-          flexDirection: "row",
-          m: 3,
-          backgroundColor: "#18181b",
-          border: "1px solid #27272a",
-        }}
-      >
-        <DataGrid
-          rows={keyboards}
-          loading={loading}
-          columns={columns}
-          initialState={{ pagination: { paginationModel } }}
-          pageSizeOptions={[10, 20]}
-          checkboxSelection
-          disableColumnFilter={true}
-          disableColumnSelector={true}
-          processRowUpdate={handleRowUpdate}
-          onProcessRowUpdateError={error => {
-            console.error("Row update error", error)
-          }}
-          sx={{
-            border: 0,
-            backgroundColor: "#18181b",
-            color: "#fafafa",
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#111113",
-              borderBottom: "1px solid #27272a",
-            },
-            "& .MuiDataGrid-columnHeaderTitle": {
-              color: "#a1a1aa",
-              fontWeight: 600,
-            },
-            "& .MuiDataGrid-cell": {
-              borderBottom: "1px solid #27272a",
-              color: "#a1a1aa",
-            },
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: "#1f1f23",
-            },
-            "& .MuiDataGrid-row.Mui-selected": {
-              backgroundColor: "rgba(99, 102, 241, 0.15)",
-              "&:hover": {
-                backgroundColor: "rgba(99, 102, 241, 0.2)",
-              },
-            },
-            "& .MuiDataGrid-footerContainer": {
-              backgroundColor: "#111113",
-              borderTop: "1px solid #27272a",
-            },
-            "& .MuiTablePagination-root": {
-              color: "#a1a1aa",
-            },
-            "& .MuiCheckbox-root": {
-              color: "#3f3f46",
-              "&.Mui-checked": {
-                color: "#6366f1",
-              },
-            },
-            "& .MuiDataGrid-columnSeparator": {
-              color: "#27272a",
-            },
-            "& .MuiDataGrid-menuIcon": {
-              color: "#a1a1aa",
-            },
-            "& .MuiDataGrid-sortIcon": {
-              color: "#a1a1aa",
-            },
-            "& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within": {
-              outline: "none",
-            },
-            "& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within":
-              {
-                outline: "none",
-              },
-          }}
-        />
-      </Paper>
-      <Box display="flex" justifyContent="center" mt={2}>
-        <Button
-          variant="contained"
-          onClick={() => {
-            void handleAddKeyboard()
-          }}
-          sx={{
-            background: "linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)",
-            boxShadow: "0 0 20px rgba(99, 102, 241, 0.3)",
-            "&:hover": {
-              boxShadow: "0 0 30px rgba(99, 102, 241, 0.5)",
-            },
-          }}
-        >
+    <div className="bg-bg-base min-h-full p-6">
+      <Card variant="default" className="overflow-hidden p-0">
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id} className="border-b border-border bg-bg-subtle">
+                  {headerGroup.headers.map(header => (
+                    <th
+                      key={header.id}
+                      className={`
+                        px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider
+                        ${header.column.getCanSort() ? "cursor-pointer select-none hover:text-text-primary" : ""}
+                      `}
+                      style={{
+                        width: header.getSize() !== 150 ? header.getSize() : undefined,
+                        minWidth: header.column.columnDef.minSize,
+                      }}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      <div className="flex items-center gap-1">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getCanSort() && (
+                          <span className="ml-1">
+                            {header.column.getIsSorted() === "asc" ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : header.column.getIsSorted() === "desc" ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <div className="w-4 h-4 opacity-30">
+                                <ChevronUp className="w-4 h-2" />
+                                <ChevronDown className="w-4 h-2 -mt-1" />
+                              </div>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-4 py-8 text-center text-text-muted">
+                    Loading...
+                  </td>
+                </tr>
+              ) : table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-4 py-8 text-center text-text-muted">
+                    No keyboards found. Create one to get started!
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map(row => (
+                  <tr
+                    key={row.id}
+                    className={`
+                      border-b border-border transition-colors
+                      ${row.getIsSelected() ? "bg-indigo-500/15" : "hover:bg-bg-muted/50"}
+                    `}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id} className="px-4 py-3 text-sm text-text-secondary">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-bg-subtle">
+          <div className="flex items-center gap-2 text-sm text-text-muted">
+            <span>Rows per page:</span>
+            <select
+              value={pagination.pageSize}
+              onChange={e => {
+                table.setPageSize(Number(e.target.value))
+              }}
+              className="bg-bg-surface border border-border rounded px-2 py-1 text-text-secondary focus:outline-none focus:border-indigo-500"
+            >
+              {[10, 20, 50].map(size => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-text-muted">
+              {pagination.pageIndex * pagination.pageSize + 1}-
+              {Math.min((pagination.pageIndex + 1) * pagination.pageSize, keyboards.length)} of{" "}
+              {keyboards.length}
+            </span>
+
+            <div className="flex gap-1">
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="p-1 rounded hover:bg-bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-text-muted hover:text-text-primary transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="p-1 rounded hover:bg-bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-text-muted hover:text-text-primary transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="flex justify-center mt-6">
+        <Button variant="primary" onClick={() => void handleAddKeyboard()}>
           Add Keyboard
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 

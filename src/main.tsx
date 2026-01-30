@@ -1,9 +1,7 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { Provider } from "react-redux"
-import { ThemeProvider, CssBaseline } from "@mui/material"
 import { store } from "./app/store"
-import { theme } from "./theme"
 import "./index.css"
 import { RouterProvider } from "react-router-dom"
 import router from "./router"
@@ -17,11 +15,8 @@ if (container) {
   root.render(
     <StrictMode>
       <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SnackbarProvider />
-          <RouterProvider router={router} />
-        </ThemeProvider>
+        <SnackbarProvider />
+        <RouterProvider router={router} />
       </Provider>
     </StrictMode>
   )
